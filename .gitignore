@@ -1,0 +1,13 @@
+# Gradle related stuff
+**/build/
+**/.gradle/
+
+# IntelliJ
+**/.idea/
+
+# Output garbage
+**/out/
+
+*/gradlew
+*/gradlew.bat
+*/gradle

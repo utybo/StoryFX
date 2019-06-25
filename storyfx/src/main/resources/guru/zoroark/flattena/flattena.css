@@ -1,0 +1,235 @@
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * This Source Code Form is "Incompatible With Secondary Licenses", as
+ * defined by the Mozilla Public License, v. 2.0.
+ */
+/* Flattena is a CSS file that removes most gradients from the default JavaFX theme Modena */
+
+.root {
+    -fx-inner-border:
+    ladder(
+            -fx-color,
+            derive(-fx-color,30%) 0%,
+            derive(-fx-color,20%) 40%,
+            derive(-fx-color,25%) 60%,
+            derive(-fx-color,55%) 80%,
+            derive(-fx-color,55%) 90%,
+            derive(-fx-color,75%) 100%
+    );
+    -fx-inner-border-horizontal: derive(-fx-color,55%);
+    -fx-inner-border-bottomup: derive(-fx-color,55%);
+
+    -fx-body-color: derive(-fx-color, 8%);
+    -fx-body-color-bottomup: derive(-fx-color, 8%);
+    -fx-body-color-to-right: derive(-fx-color, 8%);
+}
+
+.ikonli-font-icon {
+    -fx-icon-color: ladder(
+            -fx-color,
+            -fx-light-text-color 45%,
+            -fx-dark-text-color 46%,
+            -fx-dark-text-color 59%,
+            -fx-mid-text-color 60%
+    );
+
+    -fx-icon-size: 18;
+}
+
+.toggle-button:selected {
+    -fx-background-color: -fx-shadow-highlight-color,
+    -fx-outer-border,
+    derive(-fx-color, -11%);
+}
+
+.toggle-button:selected:focused {
+    -fx-background-color: -fx-focus-color,
+    derive(-fx-color, -11%),
+    -fx-faint-focus-color,
+    derive(-fx-color, -11%);
+}
+
+
+.tool-bar:vertical {
+    -fx-background-color: -fx-outer-border, derive(-fx-base, 10%);
+}
+
+.tool-bar {
+    -fx-background-color: derive(TOP-COLOR, 25%),
+    TOP-COLOR 2%;
+}
+
+.tool-bar.bottom {
+    -fx-background-color: -fx-outer-border,
+    derive(TOP-COLOR, 25%),
+    TOP-COLOR;
+}
+
+.slider .thumb {
+    -fx-background-color: derive(-fx-text-box-border, -20%),
+    -fx-inner-border,
+    -fx-body-color;
+}
+
+.slider .track {
+    -fx-background-color: -fx-shadow-highlight-color,
+    -fx-text-box-border,
+    -fx-control-inner-background;
+}
+
+.slider:vertical .track {
+    -fx-background-color: -fx-shadow-highlight-color,
+    -fx-text-box-border,
+    -fx-control-inner-background;
+}
+
+.scroll-bar:horizontal {
+    -fx-background-color: derive(-fx-box-border, 30%), derive(-fx-base, 5%);
+}
+
+.scroll-bar:vertical {
+    -fx-background-color: derive(-fx-box-border, 30%), derive(-fx-base, 5%);
+}
+
+.scroll-bar:focused {
+    -fx-background-color: -fx-focus-color,
+    derive(-fx-base, 5%),
+    -fx-faint-focus-color,
+    derive(-fx-base, 5%);
+}
+
+.scroll-bar:vertical:focused {
+    -fx-background-color: -fx-focus-color,
+    derive(-fx-base, 5%),
+    -fx-faint-focus-color,
+    derive(-fx-base, 5%);
+}
+
+.progress-bar > .bar {
+    -fx-background-color: derive(-fx-accent, 0%);
+}
+
+.progress-bar > .track {
+    -fx-background-color: -fx-shadow-highlight-color, -fx-text-box-border,
+    derive(-fx-control-inner-background, 0%);
+}
+
+.progress-indicator > .determinate-indicator > .indicator {
+    -fx-background-color: -fx-box-border, -fx-control-inner-background, -fx-control-inner-background;
+}
+
+.progress-indicator > .determinate-indicator > .tick {
+    /* from https://iconmonstr.com/check-mark-1-svg/ */
+    -fx-shape: "M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z";
+}
+
+.text-input {
+    -fx-background-color: -fx-text-box-border, -fx-control-inner-background;
+}
+
+.text-input:focused {
+    -fx-background-color: -fx-focus-color,
+    -fx-control-inner-background,
+    -fx-faint-focus-color,
+    derive(-fx-control-inner-background, -9%);
+}
+
+.text-area {
+    -fx-background-color: -fx-text-box-border, derive(-fx-base, -1%);
+}
+
+.text-area .content {
+    -fx-background-color: -fx-control-inner-background;
+}
+
+.text-area:focused .content {
+    -fx-background-color: -fx-control-inner-background,
+    -fx-faint-focus-color,
+    -fx-control-inner-background;
+}
+
+.context-menu {
+    -fx-background-color: derive(-fx-color, -17%), -fx-control-inner-background;
+}
+
+.menu-bar {
+    -fx-background-color: derive(-fx-base, 75%), derive(-fx-base, -2.1%);
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -fx-outer-border,
+    -fx-text-box-border,
+    -fx-text-box-border;
+}
+
+.combo-box-base:editable > .text-field,
+.date-picker > .text-field {
+    -fx-background-color: -fx-text-box-border,
+    -fx-control-inner-background;
+}
+
+.combo-box-base:editable:focused > .text-field,
+.combo-box-base:editable > .text-field:focused,
+.date-picker:focused > .text-field,
+.date-picker > .text-field:focused {
+    -fx-background-color: -fx-control-inner-background,
+    -fx-faint-focus-color,
+    -fx-control-inner-background;
+}
+
+.combo-box-popup > .list-view {
+    -fx-background-color: derive(-fx-color, -17%),
+    -fx-control-inner-background;
+}
+
+.titled-pane > .title {
+    -fx-background-color: derive(-fx-color, -15%),
+    -fx-inner-border, -fx-body-color;
+}
+
+.titled-pane > *.content {
+    -fx-background-color: -fx-background;
+}
+
+.accordion > .titled-pane > .title {
+    -fx-background-color: derive(-fx-color, -15%), -fx-inner-border, -fx-body-color;
+}
+
+.color-palette {
+    -fx-background-color: derive(-fx-color, -17%), derive(-fx-background, -5%);
+}
+
+.chart-legend {
+    -fx-background-color: -fx-shadow-highlight-color, derive(-fx-background, -10%), derive(-fx-background, -4%);
+}
+
+.date-picker-popup {
+    -fx-background-color:
+    derive(-fx-color, -17%),
+    -fx-control-inner-background;
+}
+
+.date-picker-popup > .month-year-pane {
+    -fx-background-color: derive(-fx-box-border, 30%), derive(-fx-base, 5%);
+}
+
+.spinner {
+    -fx-background-color: -fx-text-box-border, -fx-control-inner-background;
+}
+
+.spinner > .text-field {
+    -fx-background-color: -fx-text-box-border, -fx-control-inner-background;
+}
+
+.spinner:focused > .text-field,
+.spinner:contains-focus > .text-field {
+    -fx-background-color: -fx-control-inner-background,
+    -fx-faint-focus-color, -fx-control-inner-background;
+}
+
+.dialog-pane:header .header-panel {
+    -fx-background-color: -fx-box-border, derive(-fx-background, 30%);
+}
