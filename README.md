@@ -1,6 +1,6 @@
-# StoryFX
+# StoryFX [![Discord](https://img.shields.io/badge/chat-discord-7289DA.svg?style=for-the-badge&logo=discord)](https://discord.gg/bMpqrv7)
 
-StoryFX is a desktop application for reading branching stories.
+StoryFX is a desktop application for reading branching stories. It is a spiritual successor to [OpenBST](https://github.com/utybo/BST), which has been discontinued.
 
 This repository also contains the source code for the libstorytree library, a library for reading stories that use the `story.kts` (Story Kotlin DSL) format.
 
