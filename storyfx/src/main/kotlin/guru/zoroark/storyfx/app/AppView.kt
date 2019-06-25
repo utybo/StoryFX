@@ -30,7 +30,8 @@ class AppView : View() {
         title = "StoryFX"
         center {
             appTabPane = tabpane {
-                tab("Home") {
+                tab("") {
+                    graphic = FontIcon("gmi-home")
                     isClosable = false
                     borderpane {
                         center = vbox(16, alignment = Pos.CENTER) {
@@ -54,10 +55,10 @@ class AppView : View() {
                                 opacity = 0.5
                             }
                             paddingAll = 4
-                            button("Light theme") {
+                            button("Light theme", FontIcon("mdi-weather-sunny")) {
                                 action { changeThemeTo(StoryFxApp.brightTheme, false) }
                             }
-                            button("Dark theme") {
+                            button("Dark theme", FontIcon("mdi-weather-night")) {
                                 action { changeThemeTo(StoryFxApp.darkTheme, true) }
                             }
                         }
@@ -67,19 +68,36 @@ class AppView : View() {
                                 progressbar(controller.preloadStatus.progress)
                             }
                             right = progress
-                            left = label("Version ${StoryFxApp.appVersion}") {
-                                enableWhen { SimpleBooleanProperty(false) }
+                            left = hbox(4, Pos.CENTER_LEFT) {
+                                hyperlink(graphic = FontIcon("mdi-discord")) {
+                                    action {
+                                        app.hostServices.showDocument("https://discord.gg/bMpqrv7")
+                                    }
+                                }
+                                hyperlink(graphic = FontIcon("mdi-github-circle")) {
+                                    action {
+                                        app.hostServices.showDocument("https://github.com/utybo/StoryFX")
+                                    }
+                                }
+                                hyperlink(graphic = FontIcon("gmi-bug-report")) {
+                                    action {
+                                        app.hostServices.showDocument("https://github.com/utybo/StoryFX/issues")
+                                    }
+                                }
+                                label("Version ${StoryFxApp.appVersion}") {
+                                    enableWhen { SimpleBooleanProperty(false) }
+                                }
                             }
-
                             paddingAll = 8
                         }
 
                         controller.preloadElements()
-
                     }
+
                 }
             }
         }
+
     }
 
     fun fadeOutProgress() {

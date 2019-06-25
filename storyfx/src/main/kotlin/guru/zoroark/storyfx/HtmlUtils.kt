@@ -76,7 +76,7 @@ fun additionalStyling(darkMode: Boolean): String =
 
 private fun generateBackgroundStyle(bg64: String?, darkMode: Boolean): String {
     if (bg64 == null)
-        return ""
+        return if (darkMode) "<style type=\"text/css\">body {background-color: #000000;}</style>" else ""
     val sb = StringBuilder()
     sb.append("<style type=\"text/css\">body {background-image:url('data:image;base64,")
     sb.append(bg64)
