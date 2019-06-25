@@ -1,8 +1,11 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     // Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.
     kotlin("jvm")
     id("com.github.hierynomus.license") version "0.15.0"
     id("org.openjfx.javafxplugin") version "0.0.7"
+    id("org.beryx.jlink") version "2.11.1"
     application
 }
 
@@ -12,13 +15,15 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("no.tornado:tornadofx:2.0.0-SNAPSHOT")
-    implementation(project(":libstorytree"))
-    implementation("org.kordamp.ikonli:ikonli-javafx:11.3.4")
-    implementation("org.kordamp.ikonli:ikonli-material-pack:11.3.4")
-    implementation("org.kordamp.ikonli:ikonli-materialdesign-pack:11.3.4")
-    implementation("com.atlassian.commonmark:commonmark:0.12.1")
+    compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    compile("no.tornado:tornadofx:1.7.19") {
+        exclude("org.jetbrains.kotlin")
+    }
+    compile(project(":libstorytree"))
+    compile("org.kordamp.ikonli:ikonli-javafx:11.3.4")
+    compile("org.kordamp.ikonli:ikonli-material-pack:11.3.4")
+    compile("org.kordamp.ikonli:ikonli-materialdesign-pack:11.3.4")
+    compile("com.atlassian.commonmark:commonmark:0.12.1")
 
     /*
     testImplementation("org.jetbrains.kotlin:kotlin-test")
@@ -28,7 +33,7 @@ dependencies {
 
 javafx {
     version = "12.0.1"
-    modules("javafx.controls", "javafx.web")
+    modules("javafx.controls", "javafx.web", "javafx.swing", "javafx.fxml")
 }
 
 application {
@@ -61,4 +66,8 @@ license {
     exclude("**/*.gradle.kts")
     exclude("**/*.jpg")
     exclude("**/*.ttf")
+}
+
+jlink {
+    
 }
