@@ -1,5 +1,6 @@
 plugins {
-    kotlin("jvm") version "1.3.40"
+    // Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.
+    kotlin("jvm")
     id("com.github.hierynomus.license") version "0.15.0"
     id("org.openjfx.javafxplugin") version "0.0.7"
     application
