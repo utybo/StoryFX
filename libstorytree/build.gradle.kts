@@ -2,7 +2,7 @@ import com.hierynomus.gradle.license.tasks.LicenseCheck
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm")
+    kotlin("jvm") version "1.3.40"
     id("com.github.hierynomus.license") version "0.15.0"
     //kotlin("kapt") version "1.3.31"
 }
