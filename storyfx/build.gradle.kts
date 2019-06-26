@@ -1,7 +1,4 @@
 plugins {
-    // Apply the Kotlin JVM plugin to add support for Kotlin on the JVM.
-    kotlin("jvm")
-    id("com.github.hierynomus.license") version "0.15.0"
     id("org.openjfx.javafxplugin") version "0.0.7"
     application
 }
@@ -36,8 +33,6 @@ application {
     mainClassName = "guru.zoroark.storyfx.StoryFxApp"
 }
 
-tasks.compileKotlin { kotlinOptions.jvmTarget = "1.8" }
-
 val createProperties = tasks.register("createProperties") {
     dependsOn(tasks.processResources)
     doLast {
@@ -53,12 +48,4 @@ val createProperties = tasks.register("createProperties") {
 
 tasks.classes {
     dependsOn(createProperties.get())
-}
-
-license {
-    header = rootProject.file("LICENSE_HEADER")
-    mapping("kts", "JAVADOC_STYLE")
-    exclude("**/*.gradle.kts")
-    exclude("**/*.jpg")
-    exclude("**/*.ttf")
 }
