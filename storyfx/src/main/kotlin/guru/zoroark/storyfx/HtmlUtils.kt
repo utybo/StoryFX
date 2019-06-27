@@ -9,6 +9,8 @@
 package guru.zoroark.storyfx
 
 import guru.zoroark.libstorytree.StoryFont
+import org.commonmark.parser.Parser
+import org.commonmark.renderer.html.HtmlRenderer
 
 val baseCss =
         """
@@ -100,9 +102,8 @@ private fun generateBackgroundStyle(bg64: String?, darkMode: Boolean): String {
 }
 
 fun mdToHtml(text: String): String {
-    /*val parser = Parser.builder().build()
+    val parser = Parser.builder().build()
     val document = parser.parse(text)
     val renderer = HtmlRenderer.builder().build()
-    return renderer.render(document)*/
-    return text
+    return renderer.render(document)
 }

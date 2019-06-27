@@ -19,7 +19,6 @@ import javafx.scene.web.WebView
 import javafx.stage.Window
 import tornadofx.*
 import java.util.concurrent.CountDownLatch
-import kotlin.random.Random
 
 class AppController : Controller() {
     val preloadStatus = TaskStatus()
@@ -54,7 +53,6 @@ class AppController : Controller() {
 
             updateMessage("Initializing Markdown converter...")
             mdToHtml("*test*")
-            Thread.sleep(Random.nextLong(500))
 
             updateMessage("Initialiazing web view...")
             val cdl = CountDownLatch(1)
@@ -66,7 +64,6 @@ class AppController : Controller() {
                 }
             }
             cdl.await()
-            Thread.sleep(Random.nextLong(500))
             updateMessage("Done!")
             updateProgress(1, 1)
         } ui {
