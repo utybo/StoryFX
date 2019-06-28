@@ -51,24 +51,29 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
 
 
     override fun warn(message: String) {
-        val latch = CountDownLatch(1)
-        Platform.runLater {
+        runAndWait {
             alert(Alert.AlertType.WARNING, "Warning from story", content = message,
                     owner = primaryStage.owner)
-            latch.countDown()
         }
-        latch.await()
     }
 
-    override fun error(message: String) {
-        Platform.runLater {
+    private fun runAndWait(function: () -> Alert) {
+        if(Platform.isFxApplicationThread()) {
+            function()
+        } else {
             val latch = CountDownLatch(1)
             Platform.runLater {
-                alert(Alert.AlertType.ERROR, "Error from story", content = message,
-                        owner = primaryStage.owner)
+                function()
                 latch.countDown()
             }
             latch.await()
+        }
+    }
+
+    override fun error(message: String) {
+        runAndWait {
+            alert(Alert.AlertType.ERROR, "Error from story", content = message,
+                    owner = primaryStage.owner)
         }
     }
 
