@@ -16,8 +16,9 @@ val baseCss =
         """
         <style type="text/css">
             .node-container {
-                padding: 4px;
+                margin: 4px;
                 z-index: 10;
+                -webkit-user-select: none;
             }
             
             .overlay-container {
@@ -28,6 +29,7 @@ val baseCss =
                 height: 100%;
                 width: 100%;
                 z-index: -1;
+                -webkit-user-select: none;
             }
         </style>
         """.trimIndent()
