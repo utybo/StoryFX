@@ -12,6 +12,7 @@ import guru.zoroark.storyfx.app.AppView
 import guru.zoroark.storyfx.styles.StoryFxCommonStyles
 import guru.zoroark.storyfx.styles.StoryFxStyleBright
 import guru.zoroark.storyfx.styles.StoryFxStyleDark
+import javafx.scene.image.Image
 import javafx.scene.text.Font
 import javafx.stage.Stage
 import tornadofx.*
@@ -56,6 +57,7 @@ class StoryFxApp : App(AppView::class) {
     }
 
     override fun start(stage: Stage) {
+        stage.icons.add(Image(javaClass.getResourceAsStream("/guru/zoroark/storyfx/icons/app2.png")))
         stage.width = 800.0
         stage.height = 600.0
         super.start(stage)

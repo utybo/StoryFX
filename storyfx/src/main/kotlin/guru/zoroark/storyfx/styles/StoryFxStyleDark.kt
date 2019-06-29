@@ -51,11 +51,13 @@ class StoryFxStyleDark : Stylesheet() {
         }
 
         StoryFxCommonStyles.massiveIcon {
-            iconColor.value = LinearGradient.valueOf("to bottom, white, #4db6ac")
+            //iconColor.value = LinearGradient.valueOf("to top, #265c57, #4db6ac")
+            iconColor.value = LinearGradient.valueOf("to top, #4db6ac, #95d3cd")
         }
 
         StoryFxCommonStyles.massiveText {
-            textFill = LinearGradient.valueOf("to bottom, white, #4db6ac")
+            //textFill = LinearGradient.valueOf("to top, #265c57, #4db6ac")
+            textFill = LinearGradient.valueOf("to top, #4db6ac, #95d3cd")
         }
     }
 }

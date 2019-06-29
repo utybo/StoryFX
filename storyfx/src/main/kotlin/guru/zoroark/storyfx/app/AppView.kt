@@ -51,16 +51,16 @@ class AppView : View() {
                             }
                         }
                         top = hbox(4, alignment = Pos.TOP_RIGHT) {
-                            style {
-                                opacity = 0.5
-                            }
                             paddingAll = 4
-                            button("Light theme", FontIcon("mdi-weather-sunny")) {
-                                action { changeThemeTo(StoryFxApp.brightTheme, false) }
+                            menubutton("Themes", FontIcon("mdi-theme-light-dark")) {
+                                item("Light theme", graphic = FontIcon("mdi-weather-sunny")) {
+                                    action { changeThemeTo(StoryFxApp.brightTheme, false) }
+                                }
+                                item("Dark theme", graphic = FontIcon("mdi-weather-night")) {
+                                    action { changeThemeTo(StoryFxApp.darkTheme, true) }
+                                }
                             }
-                            button("Dark theme", FontIcon("mdi-weather-night")) {
-                                action { changeThemeTo(StoryFxApp.darkTheme, true) }
-                            }
+
                         }
                         bottom = borderpane {
                             progress = hbox(8, alignment = Pos.CENTER_RIGHT) {
