@@ -15,24 +15,49 @@ package guru.zoroark.libstorytree
  */
 interface BaseEngine {
     /**
-     * Send a warning to the engine. The message should be displayed to the
-     * end user.
+     * Show a warning to the end user, usually appearing in a popup.
+     *
+     * @param message The message to display
      */
     fun warn(message: String)
 
     /**
-     * Send an error to the engine. The message should be displayed to the
-     * end user.
+     * Show an error to the end user, usually appearing in a popup.
+     *
+     * @param message The message to display
      */
     fun error(message: String)
 }
 
+/**
+ * An engine that supports resources (loading and retrieval). You should not interact
+ * with these functions directly. Use the loadResources() and resources\["resourceName"]
+ * functions from the StoryBuilder.
+ */
 interface ResourceEngine : BaseEngine {
+
+    /**
+     * Get a [Resource] which has the following name. For example, if the file `myResource.png`
+     * is placed in the resources folder, calling `getResource("myResource.png")` will return
+     * the resource that corresponds to that file.
+     *
+     * @param resourceName the path to the resource, relative to the resources folder.
+     */
     fun getResource(resourceName: String): Resource
+
+    /**
+     * Make the engine load the resources in the resources folder.
+     */
     fun loadResources()
 }
 
+/**
+ * Represents a resource placed in the resources folder
+ */
 interface Resource {
+    /**
+     * The name of the resource this object represents
+     */
     val name: String
 }
 
@@ -44,6 +69,13 @@ interface Resource {
  * * Fonts ([font])
  */
 interface CommonEngine : BaseEngine {
+
+    /**
+     * Ask the user for input (as a string) and returns what they answered,
+     * usually in a popup. The user is forced to reply with a non-empty string.
+     *
+     * @param question The question that is displayed when the popup appears.
+     */
     fun askInput(question: String): String
 
     var imageBackground: Resource?
