@@ -15,7 +15,7 @@ class Story(
         var id: String = ""
 ) {
     val nodes: MutableList<StoryNode> = mutableListOf()
-    var initialNode: () -> StoryNode = { this[1] ?: error("Initial node does not exist") }
+    var initialNode: () -> StoryNode = { this[1] ?: error("Initial node (with id 1) does not exist") }
 
     operator fun get(id: Int): StoryNode? = this[id.toString()]
 

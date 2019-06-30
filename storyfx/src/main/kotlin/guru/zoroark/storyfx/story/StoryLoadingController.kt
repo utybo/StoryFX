@@ -11,6 +11,7 @@ package guru.zoroark.storyfx.story
 import guru.zoroark.libstorytree.StoryEnvironment
 import guru.zoroark.libstorytree.dsl.StoryBuilderException
 import guru.zoroark.libstorytree.dsl.buildStoryDsl
+import guru.zoroark.libstorytree.parseStoryText
 import guru.zoroark.storyfx.impl.Base64Resource
 import guru.zoroark.storyfx.impl.FileResource
 import guru.zoroark.storyfx.showBuilderError
@@ -34,7 +35,11 @@ class StoryLoadingController : Controller() {
             updateProgress(-1, 10)
             try {
                 task = this
-                val stories = buildStoryDsl(loadFrom, StoryEnvironment(nodeController))
+                val stories = if (loadFrom.extension == "kts")
+                    buildStoryDsl(loadFrom, StoryEnvironment(nodeController))
+                else
+                    listOf(parseStoryText(loadFrom))
+
                 if (stories.isEmpty())
                     throw StoryBuilderException("No stories described in file")
 
