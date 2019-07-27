@@ -16,7 +16,7 @@ import tornadofx.*
 import java.util.concurrent.Callable
 
 class StoryController : Controller() {
-    var tab = SimpleObjectProperty<Tab?>(null)
+    val tab = SimpleObjectProperty<Tab?>(null)
     val loadingController: StoryLoadingController by inject()
     val nodeController: StoryNodeController by inject()
     val view: StoryView by inject()

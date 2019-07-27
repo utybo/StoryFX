@@ -86,8 +86,16 @@ class StoryBuilder(val env: StoryEnvironment) {
     fun story(init: Story.() -> Unit): Story {
         val story = Story()
         init(story)
-        built.add(story)
+        registerStory(story)
         return story
+    }
+
+    private fun registerStory(story: Story) {
+        // Stories should be registered after being initialized
+        if (built.any { it.id == story.id }) {
+            throw StoryBuilderException("Stories built at the same time must not have identical IDs.")
+        }
+        built.add(story)
     }
 
     /**
@@ -146,12 +154,18 @@ class StoryBuilder(val env: StoryEnvironment) {
      * ```
      */
     infix fun String.import(init: Story.() -> Unit): Story {
-        val story = parseStoryText(BufferedReader(StringReader(this)))
+        val story = parseStoryText(BufferedReader(StringReader(this.trimIndent())))
         init(story)
-        built.add(story)
+        registerStory(story)
         return story
     }
 
+    fun importTxt(resource: Resource, init: Story.() -> Unit): Story {
+        val story = parseStoryText(resource.openStream().bufferedReader())
+        init(story)
+        registerStory(story)
+        return story
+    }
 }
 
 /**

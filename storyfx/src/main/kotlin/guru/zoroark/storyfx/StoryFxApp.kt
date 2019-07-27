@@ -50,7 +50,7 @@ class StoryFxApp : App(AppView::class) {
                 "Muli-Italic.ttf"))
     }
 
-    fun loadFonts(fontNames: List<String>) {
+    private fun loadFonts(fontNames: List<String>) {
         for (s in fontNames) {
             Font.loadFont(javaClass.getResourceAsStream("/guru/zoroark/storyfx/font/$s"), 12.0)
         }

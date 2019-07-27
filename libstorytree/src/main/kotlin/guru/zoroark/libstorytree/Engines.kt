@@ -8,6 +8,8 @@
  */
 package guru.zoroark.libstorytree
 
+import java.io.InputStream
+
 /**
  * The story engine all implementations must support. It only consists
  * of two methods: warn and error, which are used for reporting information
@@ -59,6 +61,8 @@ interface Resource {
      * The name of the resource this object represents
      */
     val name: String
+
+    fun openStream(): InputStream
 }
 
 /**

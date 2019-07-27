@@ -27,7 +27,7 @@ class StoryLoadingController : Controller() {
     val loadFailed = SimpleBooleanProperty(false)
     val loadingInfo: TaskStatus = TaskStatus()
     val loadFrom = (scope as StoryScope).loadFrom
-    var task: FXTask<*> by singleAssign()
+    lateinit var task: FXTask<*>
 
     fun load() {
         runAsync(loadingInfo) {
@@ -72,5 +72,6 @@ class StoryLoadingController : Controller() {
             task.updateMessage("Loading resources: $name")
             cachedResources[name] = FileResource(name, file)
         }
+
     }
 }

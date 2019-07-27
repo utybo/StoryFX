@@ -19,6 +19,7 @@ import javafx.scene.control.Alert
 import javafx.scene.control.TextInputDialog
 import tornadofx.*
 import java.io.FileNotFoundException
+import java.util.*
 import java.util.concurrent.CountDownLatch
 
 class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
@@ -58,7 +59,7 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
     }
 
     private fun runAndWait(function: () -> Alert) {
-        if(Platform.isFxApplicationThread()) {
+        if (Platform.isFxApplicationThread()) {
             function()
         } else {
             val latch = CountDownLatch(1)
@@ -77,14 +78,21 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
         }
     }
 
-    override fun askInput(question: String): String {
+    override fun askInput(question: String): String = ensureResult {
         val input = TextInputDialog()
         with(input) {
             title = "StoryFX - ${story.title}"
             headerText = question
         }
-        val result = input.showAndWait()
-        return result.orElse(askInput(question)) // TODO that but cleaner
+        input.showAndWait()
+    }
+
+    private fun <T> ensureResult(function: () -> Optional<T>): T {
+        while (true) {
+            val result = function()
+            if (result.isPresent)
+                return result.get()
+        }
     }
 
     val cachedResources = mutableMapOf<String, Base64Resource>()
@@ -101,6 +109,7 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
     private val modeSwitcherChangeListener: ChangeListener<Boolean> = ChangeListener { _, _, n ->
         nodeView.showNodeText(n)
     }
+
     fun bindModeSwitcherTo(prop: BooleanProperty) {
         prop.addListener(WeakChangeListener(modeSwitcherChangeListener))
     }

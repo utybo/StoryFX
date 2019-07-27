@@ -55,15 +55,7 @@ class AppController : Controller() {
             mdToHtml("*test*")
 
             updateMessage("Initialiazing web view...")
-            val cdl = CountDownLatch(1)
-            Platform.runLater {
-                with(WebView()) {
-                    engine.loadContent("<html><body>Hello</body></html>")
-                    engine.loadContent(null)
-                    cdl.countDown()
-                }
-            }
-            cdl.await()
+            Class.forName("javafx.scene.web.WebView")
             updateMessage("Done!")
             updateProgress(1, 1)
         } ui {
