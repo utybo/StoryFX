@@ -13,10 +13,15 @@ import kotlin.reflect.KProperty
 /**
  * The environment in which the story exist. Provides a way to share values between stories, and gives access
  * to the engine
+ *
+ * @param engine The engine this environment uses
  */
 class StoryEnvironment(val engine: BaseEngine) {
     private val environmentProperties: MutableMap<String, Any?> = mutableMapOf()
 
+    /**
+     * Class used for delegating properties to the environment
+     */
     inner class EnvironmentDelegator<T>(private val default: T) {
         operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
             if (environmentProperties.containsKey(property.name)) {
@@ -34,6 +39,10 @@ class StoryEnvironment(val engine: BaseEngine) {
         }
     }
 
+    /**
+     * Delegate a property to the environment, making it stored in the environment and shared among all of the stories
+     * that are in the same environment.
+     */
     fun <T> delegated(defaultValue: T): EnvironmentDelegator<T> = EnvironmentDelegator(defaultValue)
 
 }

@@ -1,37 +1,46 @@
 package guru.zoroark.libstorytree
-
-import guru.zoroark.libstorytree.dsl.does
-import guru.zoroark.libstorytree.dsl.node
-import guru.zoroark.libstorytree.dsl.nodeRef
-import guru.zoroark.libstorytree.dsl.option
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 
 private val optionPattern = "\\{(.+?)}\\s*(.+?)\\s*".toRegex()
 
-
+/**
+ * Parse a story that is in the story.txt format stored in the given file.
+ *
+ * @param input The file to read the story.txt story from
+ * @return The story that was built
+ * @throws
+ */
 fun parseStoryText(input: File): Story {
     return BufferedReader(InputStreamReader(input.inputStream())).use {
         parseStoryText(it)
     }
 }
 
+/**
+ * Parse the story.txt formatted story from the given input.
+ *
+ * @param input The reader from which to read the story.txt formatted data
+ * @return The story that was read
+ */
 fun parseStoryText(input: BufferedReader): Story {
     val story = Story()
     var currentNode: StoryNode? = null
     input.forEachLine {
         val trimmed = it.trim()
+        if(trimmed.startsWith("//"))
+            return@forEachLine
         if (currentNode == null) {
             if ('=' in trimmed) {
                 val bits = trimmed.split('=', limit = 1)
-                val propertyName = bits[0]
-                val propertyValue = bits[1]
+                val propertyName = bits[0].trim()
+                val propertyValue = bits[1].trim()
                 story.applyTxtProperty(propertyName, propertyValue)
                 return@forEachLine
             }
         }
-        if (!trimmed.isEmpty() && trimmed.first() == '[' && trimmed.last() == ']' && trimmed.length >= 3) {
+        if (trimmed.isNotEmpty() && trimmed.first() == '[' && trimmed.last() == ']' && trimmed.length >= 3) {
             val nodeId = trimmed.substring(1, trimmed.length - 1)
             if (currentNode != null) {
                 val textToPutIn = currentNode!!.text()
@@ -58,7 +67,7 @@ private fun Story.applyTxtProperty(name: String, value: String) {
         "title" -> title = value
         "author" -> author = value
         "initialNode" -> initialNode = {
-            nodeRef(value) ?: error("Node defined in intialNode property does not exist")
+            nodeRef(value)
         }
     }
 }

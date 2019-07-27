@@ -78,6 +78,13 @@ interface CommonEngine : BaseEngine {
      */
     fun askInput(question: String): String
 
+    /**
+     * The resource to use as a background, shown behind the current node's text.
+     */
     var imageBackground: Resource?
+
+    /**
+     * The font to use for the story.
+     */
     var font: StoryFont
 }

@@ -15,6 +15,9 @@ import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
 
+/**
+ * [KotlinScript] annotation to mark the build script.
+ */
 @KotlinScript(
         displayName = "libstorytree Story (Kotlin DSL)",
         fileExtension = "story.kts",
@@ -22,6 +25,10 @@ import kotlin.script.experimental.jvm.jvm
 )
 abstract class StoryBuildScript
 
+/**
+ * Class for the story.kts configuration. This is used for defining which imports are there by default, as well
+ * as the [StoryBuilder] implicit receiver.
+ */
 class StoryKtsConfiguration : ScriptCompilationConfiguration({
     jvm {
         dependenciesFromCurrentContext(wholeClasspath = true)

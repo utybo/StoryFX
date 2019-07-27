@@ -9,9 +9,7 @@
 package guru.zoroark.libstorytree.dsl
 
 import guru.zoroark.libstorytree.*
-import java.io.File
-import java.io.PrintWriter
-import java.io.StringWriter
+import java.io.*
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
 import kotlin.script.experimental.api.SourceCode
@@ -29,13 +27,42 @@ private val Throwable.stackTraceString: String
         return sw.toString()
     }
 
+/**
+ * A simple interface for something that allows you to get a resource.
+ *
+ *     resourceGetterObject["Resource name"]
+ */
 interface ResourcesGetter {
+    /**
+     * Get a resource by its name from this getter object.
+     * @return a Resource object that matches the resource name.
+     * @throws StoryBuilderException if the engine does not support resources.
+     */
     operator fun get(resourceName: String): Resource
 }
 
+/**
+ * The StoryBuilder is an object receiver for all story.kts scripts, which provides basic functionality for building and
+ * managing stories. All of its members can be used directly in story.kts files.
+ *
+ * @property env The environment the story will live in.
+ */
 class StoryBuilder(val env: StoryEnvironment) {
+    /**
+     * Stories that have been built with this builder.
+     */
     val built: MutableList<Story> = mutableListOf()
 
+    /**
+     * An object that can be used to retrieve a resource with a nice syntax. It uses the engine under the hood.
+     *
+     * Usage:
+     * ```
+     * resources["resource name"]
+     * ```
+     *
+     * @return a [ResourcesGetter] object that can be used for retrieving resources.
+     */
     val resources = object : ResourcesGetter {
         override operator fun get(resourceName: String): Resource {
             if (env.engine is ResourceEngine)
@@ -45,6 +72,17 @@ class StoryBuilder(val env: StoryEnvironment) {
         }
     }
 
+    /**
+     * Story block definition. This creates a story and uses a lambda-with-receiver to allow customization of the
+     * story.
+     *
+     * Usage:
+     * ```
+     *     story {
+     *         // Story block content goes here (nodes, title, author...)
+     *     }
+     * ```
+     */
     fun story(init: Story.() -> Unit): Story {
         val story = Story()
         init(story)
@@ -53,13 +91,16 @@ class StoryBuilder(val env: StoryEnvironment) {
     }
 
     /**
-     * Get the engine this script will is ran, making sure it supports the specified standard engine.
+     * Get the engine this script is ran with, making sure it supports the specified engine type. If the specified
+     * engine type is not supported, throws an exception.
      *
-     * Standard engines include, from least to most featured:
-     *  * BaseEngine, the most basic one which is always supported. It enables using
-     *    the warn and error functions
-     *  * CommonEngine, which
+     * A list of standard engines can be found
+     * [in the official documentation](https://storyfx.zoroark.guru/docs/storykts/engines.html)
      *
+     * @throws IncompatibleEngineException if the engine the story is ran in is not compatible with the one that is
+     * specified
+     * @param T The engine type required by the story
+     * @return The required engine
      */
     inline fun <reified T : BaseEngine> requireEngine(): T {
         if (env.engine is T) {
@@ -69,10 +110,21 @@ class StoryBuilder(val env: StoryEnvironment) {
         }
     }
 
+    /**
+     * This function throws an exception, instantly making the story crash.
+     *
+     * @throws StoryBuilderException always
+     */
     fun forceFail() {
         throw StoryBuilderException("The story was forced to crash by calling the forceFail() function")
     }
 
+    /**
+     * Trigger the loading of all of the resources in the engine. If the engine does not support resources, throws
+     * an exception. The exact behavior of the resources loading depends on the engine.
+     *
+     * Resources are loaded from a folder named "resources" located in the same folder as the story.kts file.
+     */
     fun loadResources() {
         if (env.engine is ResourceEngine)
             env.engine.loadResources()
@@ -80,12 +132,53 @@ class StoryBuilder(val env: StoryEnvironment) {
             throw StoryBuilderException("Engine does not support resources")
     }
 
+    /**
+     * Import the string as a story.txt file, parse it and use it in the lambda, which is a story block, for additional
+     * customization.
+     *
+     * Usage:
+     * ```
+     *     """
+     *     A story.txt story
+     *     """ import {
+     *         // This is a story block
+     *     }
+     * ```
+     */
+    infix fun String.import(init: Story.() -> Unit): Story {
+        val story = parseStoryText(BufferedReader(StringReader(this)))
+        init(story)
+        built.add(story)
+        return story
+    }
+
 }
 
+/**
+ * Build a story from the given string, assumed to be the contents of a story.kts file.
+ *
+ * @param script The story.kts string, directly represented as a string
+ * @param env The environment in which the story will be ran.
+ * @return The stories that were built from the string
+ */
 fun buildStoryDsl(script: String, env: StoryEnvironment) = buildStoryDsl(script.toScriptSource(), env)
 
+/**
+ * Build and run the given file as a story.kts file.
+ *
+ * @param file The story.kts file to execute
+ * @param env The environment in which the story will be ran.
+ * @return The stories that were built from the file
+ */
 fun buildStoryDsl(file: File, env: StoryEnvironment) = buildStoryDsl(file.toScriptSource(), env)
 
+/**
+ * Build and run the given source code as a story.kts script.
+ *
+ * @param source The SourceCode object from which to load and execute the script
+ * @param env The environment in which the story will be ran
+ * @return the stories built from the script
+ */
 fun buildStoryDsl(source: SourceCode, env: StoryEnvironment): MutableList<Story> {
     val builder = StoryBuilder(env)
     val cfg = createJvmCompilationConfigurationFromTemplate<StoryBuildScript>()
@@ -106,10 +199,12 @@ fun buildStoryDsl(source: SourceCode, env: StoryEnvironment): MutableList<Story>
         } else {
             val sb = StringBuilder("Story building failed. Check the diagnostics for why.\n")
             read.reports.forEach {
-                sb.appendln(it.message)
-                if (it.exception != null) {
-                    sb.appendln("  Stack trace:")
-                    sb.appendln(it.exception!!.stackTraceString.prependIndent("  "))
+                with(sb) {
+                    appendln(it.message)
+                    if (it.exception != null) {
+                        appendln("  Stack trace:")
+                        appendln(it.exception!!.stackTraceString.prependIndent("  "))
+                    }
                 }
             }
             throw StoryBuilderException(sb.toString())
@@ -117,6 +212,37 @@ fun buildStoryDsl(source: SourceCode, env: StoryEnvironment): MutableList<Story>
     }
 }
 
+/**
+ * Run a StoryBuilder block directly.
+ *
+ * @param env The environment the story will be ran in
+ * @param init The code to execute
+ * @return The stories that were built using the [init] block.
+ */
+fun buildStoryDsl(env: StoryEnvironment, init: StoryBuilder.() -> Unit): MutableList<Story> {
+    val storyBuilder = StoryBuilder(env)
+    try {
+        init(storyBuilder)
+    } catch (e: Exception) {
+        val sb = StringBuilder("Story building failed due to an unexpected exception.\n")
+        sb.appendln(e.stackTraceString)
+        throw StoryBuilderException(sb.toString(), cause = e)
+    }
+    return storyBuilder.built
+}
+
+/**
+ * General exception for stories.
+ *
+ * @property diagnosticsMessage A possibly multi-line message with full information on what happened
+ * @param message The regular [Exception] message. Optional. Default value is the first line of the [diagnosticsMessage].
+ * @param cause The cause of this builder exception. Optiona. Default value is null.
+ */
 open class StoryBuilderException(val diagnosticsMessage: String, message: String? = diagnosticsMessage.split("\n")[0], cause: Throwable? = null) : Exception(message, cause)
 
+/**
+ * The exception thrown when [StoryBuilder.requireEngine] detects that the engine the story is ran in is incompatible with the one the story requires.
+ *
+ * @param requiredEngine The engine that is required by the story.
+ */
 class IncompatibleEngineException(requiredEngine: String) : StoryBuilderException("Engine does not match story requirements. Required: $requiredEngine")
