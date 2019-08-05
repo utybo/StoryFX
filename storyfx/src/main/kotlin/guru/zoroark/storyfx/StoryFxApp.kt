@@ -19,6 +19,10 @@ import tornadofx.*
 import java.io.InputStreamReader
 import java.util.*
 
+fun main(args: Array<String>) {
+    launch<StoryFxApp>(args)
+}
+
 /**
  * JavaFX entry point for StoryFX
  */
