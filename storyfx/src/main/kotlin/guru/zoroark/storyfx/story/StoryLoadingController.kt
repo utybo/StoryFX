@@ -19,6 +19,8 @@ import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
 import tornadofx.*
 import java.io.File
+import java.nio.file.*
+import java.nio.file.attribute.BasicFileAttributes
 
 class StoryLoadingController : Controller() {
     val loadFailedOnce = SimpleBooleanProperty(false)
@@ -65,13 +67,33 @@ class StoryLoadingController : Controller() {
     fun loadResources(cachedResources: MutableMap<String, Base64Resource>) {
         val from = (scope as StoryScope).loadFrom
         val resourcesFolder = File(from.parentFile, "resources")
-        val resourcesFiles = resourcesFolder.listFiles()?.filter { it.isFile } ?: return
-        for ((i, file) in resourcesFiles.withIndex()) {
-            val name = file.name
-            task.updateProgress(i.toLong(), resourcesFiles.size.toLong())
-            task.updateMessage("Loading resources: $name")
-            cachedResources[name] = FileResource(name, file)
-        }
+        task.updateMessage("Exploring resources...")
+        val resourcesFiles = resourcesFolder.getTreeListOfChildren()
 
+        for ((i, pair) in resourcesFiles.withIndex()) {
+            val name = pair.first
+            task.updateProgress(i.toLong(), resourcesFiles.size.toLong())
+            task.updateMessage("Loading resource: $name")
+            cachedResources[name] = FileResource(name, pair.second)
+        }
+        task.updateMessage("Resources loaded, continuing...")
+    }
+
+    private fun File.getTreeListOfChildren(): List<Pair<String, File>> {
+        val list = mutableListOf<Pair<String, File>>()
+        visitFileTree(this) { x, y ->
+            list += y to x
+        }
+        return list
+    }
+
+    private fun visitFileTree(root: File, rootName: String = "", action: (File, String) -> Unit) {
+        val children = root.listFiles() ?: throw NullPointerException("Root is null")
+        for (file in children) {
+            if (file.isDirectory)
+                visitFileTree(file, "$rootName${file.name}/", action)
+            else
+                action(file, rootName + file.name)
+        }
     }
 }

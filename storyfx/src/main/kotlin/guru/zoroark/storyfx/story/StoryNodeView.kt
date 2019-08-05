@@ -59,6 +59,7 @@ class StoryNodeView : View() {
                     action { controller.handleOptionPressed(no) }
                 }
             }
+            paddingAll = if(rowCount == 0) 0.0 else 8.0
         }
     }
 
