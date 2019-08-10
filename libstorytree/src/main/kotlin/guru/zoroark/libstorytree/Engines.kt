@@ -72,7 +72,7 @@ interface Resource {
  * * Image backgrounds ([imageBackground])
  * * Fonts ([font])
  */
-interface CommonEngine : BaseEngine {
+interface CommonEngine : ResourceEngine {
 
     /**
      * Ask the user for input (as a string) and returns what they answered,
@@ -81,6 +81,19 @@ interface CommonEngine : BaseEngine {
      * @param question The question that is displayed when the popup appears.
      */
     fun askInput(question: String): String
+
+    /**
+     * Give the user a choice between the given options choice. You should probably not
+     * use this method for asking for choices.
+     *
+     * @param cancellable If true, a "cancel" button will be added. If false, the window
+     * will not be closeable by the user.
+     * @param text The text to be shown to the user
+     * @param options The options the user can choose from. See [ChoiceOption] for more details
+     * @return The ChoiceOption object that corresponds to the option that was chosen, or null
+     * if the choice was cancelled.
+     */
+    fun choice(cancellable: Boolean = false, text: String, vararg options: ChoiceOption): ChoiceOption?
 
     /**
      * The resource to use as a background, shown behind the current node's text.

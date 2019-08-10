@@ -58,7 +58,7 @@ class StoryLoadingController : Controller() {
                 Platform.runLater {
                     loadFailedOnce.value = true
                     loadFailed.value = true
-                    showBuilderError(e)
+                    showBuilderError("Error while loading the story", e)
                 }
             }
         }

@@ -13,21 +13,37 @@ import javafx.event.EventTarget
 import javafx.scene.control.Alert
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
+import java.io.PrintWriter
+import java.io.StringWriter
 
-fun showBuilderError(ex: StoryBuilderException) {
+fun showBuilderError(headerText: String, ex: StoryBuilderException) {
     val alert = Alert(Alert.AlertType.ERROR).apply {
         isResizable = true
         title = "An error occurred"
-        headerText = "Error while loading story"
+        this.headerText = headerText
         dialogPane.content = vbox {
             ex.message?.let { label(it + if (ex.cause != null) " (${ex.cause!!.message})" else "") }
-            textarea(ex.diagnosticsMessage) {
+            textarea("""
+                    ${ex.diagnosticsMessage}
+
+
+                    STACK TRACE:
+                    ${ex.stackTraceToString()}
+                """.trimIndent()) {
                 prefRowCount = 20
                 prefColumnCount = 50
             }
         }
     }
     alert.showAndWait()
+}
+
+private fun Exception.stackTraceToString(): String {
+    val sw = StringWriter()
+    val p = PrintWriter(sw)
+    this.printStackTrace(p)
+    p.close()
+    return sw.toString()
 }
 
 fun EventTarget.icon(iconName: String, op: FontIcon.() -> Unit = {}) = FontIcon(iconName).attachTo(this, op)

@@ -9,14 +9,18 @@
 package guru.zoroark.storyfx.story
 
 import guru.zoroark.libstorytree.*
+import guru.zoroark.libstorytree.dsl.StoryBuilderException
 import guru.zoroark.storyfx.impl.Base64Resource
+import guru.zoroark.storyfx.showBuilderError
 import javafx.application.Platform
 import javafx.beans.property.BooleanProperty
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.WeakChangeListener
-import javafx.scene.control.Alert
-import javafx.scene.control.TextInputDialog
+import javafx.scene.control.*
+import javafx.scene.layout.Priority
+import javafx.scene.paint.Color
+import javafx.stage.Modality
 import tornadofx.*
 import java.io.FileNotFoundException
 import java.util.*
@@ -39,15 +43,23 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
     }
 
     fun handleOptionPressed(no: StoryOption) {
-        val next = no.onSelected()
-        switchToNode(next ?: currentNode.value!!)
+        try {
+            val next = no.onSelected()
+            switchToNode(next ?: currentNode.value!!)
+        } catch(e: StoryBuilderException) {
+            showBuilderError("Error on a does call or an option selection", e)
+        }
     }
 
     fun switchToNode(node: StoryNode) {
-        currentNode.value = node
-        node.onNodeReached()
-        nodeView.showNodeText()
-        showOptions(node)
+        try {
+            node.onNodeReached()
+            currentNode.value = node
+            nodeView.showNodeText()
+            showOptions(node)
+        } catch(e: StoryBuilderException) {
+            showBuilderError("Error on a onNodeReached call or while displaying node", e)
+        }
     }
 
 
@@ -79,10 +91,24 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
     }
 
     override fun askInput(question: String): String = ensureResult {
-        val input = TextInputDialog()
+        val input = Dialog<String>()
+        var txtbox: TextField by singleAssign()
         with(input) {
-            title = "StoryFX - ${story.title}"
-            headerText = question
+            initOwner(nodeView.currentWindow)
+            initModality(Modality.WINDOW_MODAL)
+            title = "Input - ${story.title.value.orIfEmpty("<No name>")}"
+            dialogPane.content = vbox(10) {
+                label(question)
+                txtbox = textfield {
+                    vboxConstraints {
+                        vGrow = Priority.ALWAYS
+                    }
+                    minWidth = 200.0
+                    maxWidth = Double.MAX_VALUE
+                }
+            }
+            dialogPane += ButtonType.OK
+            setResultConverter { if (it == null) null else txtbox.text }
         }
         input.showAndWait()
     }
@@ -113,4 +139,61 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
     fun bindModeSwitcherTo(prop: BooleanProperty) {
         prop.addListener(WeakChangeListener(modeSwitcherChangeListener))
     }
+
+    override fun choice(cancellable: Boolean, text: String, vararg options: ChoiceOption): ChoiceOption? {
+        val dialog = Dialog<ChoiceOption>()
+        // Initialize the choice dialog
+        with(dialog) {
+            initOwner(nodeView.currentWindow)
+            initModality(Modality.WINDOW_MODAL)
+            contentText = text
+            title = "Choice - ${story.title.value.orIfEmpty("<No name>")}"
+            // Workaround?
+            isResizable = true
+            setOnShown {
+                isResizable = false
+            }
+        }
+        // The btypeMap is used for rembering which ButtonType is associated to which ChoiceOption
+        // (or null if the ButtonType corresponds to the Cancel option)
+        val btypeMap = mutableListOf<Pair<ButtonType, ChoiceOption?>>()
+        with(dialog.dialogPane) {
+            options.forEach {
+                val btype = ButtonType(it.text)
+                btypeMap += btype to it
+                this += btype
+                with(lookupButton(btype)) {
+                    val c = it.color
+                    val whiteText = it.whiteText
+                    style {
+                        if (c != null)
+                            baseColor = c(c)
+                        if (whiteText)
+                            textFill = Color.WHITE
+                    }
+                }
+            }
+
+            if (cancellable) {
+                btypeMap += ButtonType.CANCEL to null
+                this += ButtonType.CANCEL
+            }
+        }
+        dialog.setResultConverter { x ->
+            btypeMap.first { it.first == x }.second
+        }
+
+        return if (cancellable)
+            dialog.showAndWait().orElse(null)
+        else
+            ensureResult {
+                dialog.showAndWait()
+            }
+    }
+}
+
+private fun String.orIfEmpty(s: String) = if (isBlank()) s else this
+
+private operator fun DialogPane.plusAssign(btype: ButtonType) {
+    buttonTypes.add(btype)
 }

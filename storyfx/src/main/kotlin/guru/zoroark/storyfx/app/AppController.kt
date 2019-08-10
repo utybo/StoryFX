@@ -16,17 +16,29 @@ import guru.zoroark.storyfx.story.*
 import javafx.application.Platform
 import javafx.scene.control.TabPane
 import javafx.scene.web.WebView
+import javafx.stage.FileChooser
 import javafx.stage.Window
 import tornadofx.*
+import java.io.File
 import java.util.concurrent.CountDownLatch
 
 class AppController : Controller() {
     val preloadStatus = TaskStatus()
     val view: AppView by inject()
+    private var previousFolder: File? = null
 
     fun openNew(tabs: TabPane, currentWindow: Window?) {
-        val chosen = chooseFile("Open KTS story", owner = currentWindow, mode = FileChooserMode.Single, filters = arrayOf())
+        val chosen = chooseFile("Open KTS story",
+                owner = currentWindow,
+                mode = FileChooserMode.Single,
+                filters = arrayOf(FileChooser.ExtensionFilter("Stories (*.story.kts, *.story.txt)",
+                        "*.story.kts", "*.story.txt"))) {
+            val prev = previousFolder
+            if(prev != null && prev.exists() && prev.isDirectory)
+                initialDirectory = prev
+        }
         if (chosen.size == 1) {
+            previousFolder = chosen[0].parentFile
             // Create a new scope for each story
             val scope = StoryScope(chosen[0])
             val storyModel = StoryModel()
