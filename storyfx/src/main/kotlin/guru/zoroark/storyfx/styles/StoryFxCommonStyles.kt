@@ -15,6 +15,7 @@ class StoryFxCommonStyles : Stylesheet() {
     companion object {
         val massiveIcon by cssclass()
         val massiveText by cssclass()
+        val mediumIcon by cssclass()
     }
 
     val iconSize by cssproperty<Int>("-fx-icon-size")
@@ -22,6 +23,10 @@ class StoryFxCommonStyles : Stylesheet() {
     init {
         massiveIcon {
             iconSize.value = 64
+        }
+
+        mediumIcon {
+            iconSize.value = 48
         }
 
         massiveText {

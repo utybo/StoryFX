@@ -19,7 +19,13 @@ private fun StoryBuilder.choices(cancellable: Boolean, init: ChoicesInitializer<
     val eng = requireEngine<CommonEngine>()
     val initializer = ChoicesInitializer<Unit>()
     init(initializer)
-    val chosen = eng.choice(cancellable, initializer.text, *initializer.choices.toTypedArray())
+    val chosen = eng.choice(
+            cancellable = cancellable,
+            icon = initializer.icon,
+            text = initializer.text,
+            title = initializer.title,
+            options = *initializer.choices.toTypedArray()
+    )
     // The following also works for cancelled values
     initializer.choicesActions.filter { it.first === chosen }.forEach { it.second() }
     return chosen
@@ -29,7 +35,13 @@ fun <T> StoryBuilder.fromChoices(init: ChoicesInitializer<T>.() -> Unit): T {
     val eng = requireEngine<CommonEngine>()
     val initializer = ChoicesInitializer<T>()
     init(initializer)
-    val chosen = eng.choice(initializer.canBeCancelled, initializer.text, *initializer.choices.toTypedArray())
+    val chosen = eng.choice(
+            cancellable = initializer.canBeCancelled,
+            icon = initializer.icon,
+            text = initializer.text,
+            title = initializer.title,
+            options = *initializer.choices.toTypedArray()
+    )
     initializer.choicesActions.filter { it.first === chosen }.forEach { it.second() }
     try {
         return initializer.choicesYielding.first { it.first === chosen }.second()
@@ -53,7 +65,8 @@ fun <T> StoryBuilder.fromChoices(init: ChoicesInitializer<T>.() -> Unit): T {
 class ChoicesInitializer<T> {
     internal var canBeCancelled = false
     internal var text = ""
-
+    internal var title: String? = null
+    internal var icon: Any? = null
     val cancellable: Unit
         get() {
             canBeCancelled = true
@@ -71,6 +84,14 @@ class ChoicesInitializer<T> {
 
     fun text(text: () -> String) {
         this.text = text().trimIndent()
+    }
+
+    fun icon(icon: () -> Any?) {
+        this.icon = icon()
+    }
+
+    fun title(title: () -> String?) {
+        this.title = title()
     }
 
     infix fun ChoiceOption.withColor(color: String): ChoiceOption {

@@ -37,7 +37,16 @@ class Story(
     /**
      * The code to execute to get the initial node
      */
-    var initialNode: () -> StoryNode = { this[1] ?: error("Initial node (with id 1) does not exist") }
+    var initialNode: () -> StoryNode = {
+        this[1] ?: throw StoryBuilderException(
+                """
+                Initial node (with id 1) does not exist.
+                
+                If your initial node does not have id 1, use
+                    initialNode = { nodeRef(...) }
+                in your story block to change it.
+                """.trimIndent())
+    }
 
     /**
      * Gets the node with the given id. The ID is converted to a string and this operator calls the one which has

@@ -53,6 +53,8 @@ class StoryLoadingController : Controller() {
                     storyController.loadingFinished()
                 }
             } catch (e: StoryBuilderException) {
+                if(e is StoryLoadingAbortedException || e.cause is StoryLoadingAbortedException)
+                    return@runAsync
                 updateProgress(1, 1) // the bar be shown in orange here
                 updateMessage("Error")
                 Platform.runLater {

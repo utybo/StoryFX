@@ -166,6 +166,26 @@ class StoryBuilder(val env: StoryEnvironment) {
         registerStory(story)
         return story
     }
+
+    fun warnNsfw(vararg problematicContent: String) {
+        choices {
+            icon { "gmi-do-not-disturb-on" }
+            text {
+                """
+                This story contains explicit content that is not appropriate for people under legal age.
+                By clicking "Continue", you agree that you legally have the age and are willing to watch this content.
+                """.trimIndent() + if (problematicContent.isNotEmpty())
+                    "\n\nPotentially problematic content includes:" +
+                            problematicContent.joinToString(separator = "\n- ", prefix = "\n- ")
+                else
+                    ""
+            }
+            choice("Exit") withColor("red") withWhiteText(true) does {
+                env.engine.closeStory()
+            }
+            choice("Continue")
+        }
+    }
 }
 
 /**
@@ -214,11 +234,20 @@ fun buildStoryDsl(source: SourceCode, env: StoryEnvironment): MutableList<Story>
             val sb = StringBuilder("Story building failed. Check the diagnostics for why.\n")
             read.reports.forEach {
                 with(sb) {
-                    appendln(it.message)
+                    appendln("${it.severity.name}: ${it.message}")
+                    val loc = it.location
+                    if (loc != null) {
+                        appendln("  Location: line ${loc.start.line} @ character ${loc.start.col}")
+                        val end = loc.end
+                        if (end != null) {
+                            appendln("              to line ${end.line} @ character ${end.col}")
+                        }
+                    }
                     if (it.exception != null) {
                         appendln("  Stack trace:")
-                        appendln(it.exception!!.stackTraceString.prependIndent("  "))
+                        appendln(it.exception!!.stackTraceString.prependIndent("    "))
                     }
+                    appendln()
                 }
             }
             throw StoryBuilderException(sb.toString())

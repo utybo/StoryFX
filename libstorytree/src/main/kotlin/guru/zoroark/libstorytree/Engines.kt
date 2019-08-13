@@ -29,6 +29,11 @@ interface BaseEngine {
      * @param message The message to display
      */
     fun error(message: String)
+
+    /**
+     * Close the current story
+     */
+    fun closeStory()
 }
 
 /**
@@ -88,12 +93,16 @@ interface CommonEngine : ResourceEngine {
      *
      * @param cancellable If true, a "cancel" button will be added. If false, the window
      * will not be closeable by the user.
+     * @param icon An icon to show in the choice box. This can be:
+     * - A [String] representing an internal icon available in the player
+     * - A [Resource] representing an image.
+     * - null to indicate that no icon should be shown
      * @param text The text to be shown to the user
      * @param options The options the user can choose from. See [ChoiceOption] for more details
      * @return The ChoiceOption object that corresponds to the option that was chosen, or null
      * if the choice was cancelled.
      */
-    fun choice(cancellable: Boolean = false, text: String, vararg options: ChoiceOption): ChoiceOption?
+    fun choice(cancellable: Boolean = false, icon: Any? = null, text: String, title: String? = null, vararg options: ChoiceOption): ChoiceOption?
 
     /**
      * The resource to use as a background, shown behind the current node's text.

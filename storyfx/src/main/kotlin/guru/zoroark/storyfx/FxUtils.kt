@@ -23,13 +23,7 @@ fun showBuilderError(headerText: String, ex: StoryBuilderException) {
         this.headerText = headerText
         dialogPane.content = vbox {
             ex.message?.let { label(it + if (ex.cause != null) " (${ex.cause!!.message})" else "") }
-            textarea("""
-                    ${ex.diagnosticsMessage}
-
-
-                    STACK TRACE:
-                    ${ex.stackTraceToString()}
-                """.trimIndent()) {
+            textarea(ex.diagnosticsMessage + "\n\n\nSTACK TRACE:\n" + ex.stackTraceToString()) {
                 prefRowCount = 20
                 prefColumnCount = 50
             }

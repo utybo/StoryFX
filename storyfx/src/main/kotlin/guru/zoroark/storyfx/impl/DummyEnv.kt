@@ -11,6 +11,8 @@ package guru.zoroark.storyfx.impl
 import guru.zoroark.libstorytree.BaseEngine
 
 object DummyEnv : BaseEngine {
+    override fun closeStory() {
+    }
     override fun warn(message: String) = kotlin.error("Don't do that")
     override fun error(message: String) = kotlin.error("Don't do that")
 }
