@@ -170,6 +170,7 @@ class StoryBuilder(val env: StoryEnvironment) {
     fun warnNsfw(vararg problematicContent: String) {
         choices {
             icon { "gmi-do-not-disturb-on" }
+            title { "NSFW Warning" }
             text {
                 """
                 This story contains explicit content that is not appropriate for people under legal age.
@@ -223,12 +224,10 @@ fun buildStoryDsl(source: SourceCode, env: StoryEnvironment): MutableList<Story>
         return builder.built
     } else {
         val reports = read.reports
-        val exceptionReports = reports.filter { it.exception != null && it.exception!!.cause != null }
-        if (exceptionReports.count() == 1) {
-            val sb = StringBuilder("Story building failed due to an unexpected exception.\n")
-            val ex = exceptionReports[0]
-            sb.appendln(ex.exception!!.cause!!.stackTraceString)
-            throw StoryBuilderException(sb.toString(), cause = ex.exception!!.cause)
+        // Taking the cause of it.exception because Kotlin wraps the underlying exception
+        val exceptionReport = reports.firstOrNull { it.exception != null && it.exception!!.cause != null }
+        if (exceptionReport != null) {
+            throw StoryBuilderException("Story building failed due to an unexpected exception.", cause = exceptionReport.exception!!.cause)
 
         } else {
             val sb = StringBuilder("Story building failed. Check the diagnostics for why.\n")
