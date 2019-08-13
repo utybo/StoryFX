@@ -64,9 +64,10 @@ class StoryNodeView : View() {
     }
 
     fun showNodeText(isDark: Boolean? = null) {
+        val curNode = controller.currentNode.value ?: return
         webview.engine.loadContent(
                 toNodeHtml(
-                        controller.currentNode.value!!.text().trimIndent(),
+                        curNode.text().trimIndent(),
                         controller.font,
                         (controller.imageBackground as? Base64Resource)?.base64,
                         isDark ?: appView.isDarkMode.value)
