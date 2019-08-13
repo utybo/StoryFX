@@ -19,6 +19,7 @@ import javafx.application.Platform
 import javafx.beans.property.SimpleBooleanProperty
 import tornadofx.*
 import java.io.File
+import java.io.FileNotFoundException
 import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 
@@ -90,7 +91,7 @@ class StoryLoadingController : Controller() {
     }
 
     private fun visitFileTree(root: File, rootName: String = "", action: (File, String) -> Unit) {
-        val children = root.listFiles() ?: throw NullPointerException("Root is null")
+        val children = root.listFiles() ?: throw FileNotFoundException("Root is a file or doesn't exist")
         for (file in children) {
             if (file.isDirectory)
                 visitFileTree(file, "$rootName${file.name}/", action)

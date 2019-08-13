@@ -12,6 +12,8 @@ import guru.zoroark.libstorytree.*
 import guru.zoroark.libstorytree.dsl.StoryBuilderException
 import guru.zoroark.storyfx.icon
 import guru.zoroark.storyfx.impl.Base64Resource
+import guru.zoroark.storyfx.orIfNullOrEmpty
+import guru.zoroark.storyfx.runAndWait
 import guru.zoroark.storyfx.showBuilderError
 import guru.zoroark.storyfx.styles.StoryFxCommonStyles
 import javafx.application.Platform
@@ -29,7 +31,6 @@ import javafx.stage.Modality
 import tornadofx.*
 import java.io.FileNotFoundException
 import java.util.*
-import java.util.concurrent.CountDownLatch
 
 class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
     private val nodeView: StoryNodeView by inject()
@@ -73,22 +74,6 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
             alert(Alert.AlertType.WARNING, "Warning from story", content = message,
                     owner = primaryStage.owner)
         }
-    }
-
-
-    private fun <T> runAndWait(function: () -> T): T {
-        var result: T by singleAssign()
-        if (Platform.isFxApplicationThread()) {
-            result = function()
-        } else {
-            val latch = CountDownLatch(1)
-            Platform.runLater {
-                result = function()
-                latch.countDown()
-            }
-            latch.await()
-        }
-        return result
     }
 
     override fun error(message: String) {
@@ -223,8 +208,6 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
             throw StoryLoadingAbortedException()
         }
     }
-
-    private infix fun String?.orIfNullOrEmpty(s: String) = if (this == null || isBlank()) s else this
 
     private operator fun DialogPane.plusAssign(btype: ButtonType) {
         buttonTypes.add(btype)
