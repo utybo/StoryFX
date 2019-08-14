@@ -72,9 +72,9 @@ class ChoicesInitializer<T> {
             canBeCancelled = true
         }
 
-    val choices = mutableListOf<ChoiceOption>()
-    val choicesActions = mutableListOf<Pair<ChoiceOption?, () -> Unit>>()
-    val choicesYielding = mutableListOf<Pair<ChoiceOption?, () -> T>>()
+    internal val choices = mutableListOf<ChoiceOption>()
+    internal val choicesActions = mutableListOf<Pair<ChoiceOption?, () -> Unit>>()
+    internal val choicesYielding = mutableListOf<Pair<ChoiceOption?, () -> T>>()
 
     fun choice(text: String): ChoiceOption {
         val choice = ChoiceOption(text)
@@ -112,11 +112,15 @@ class ChoicesInitializer<T> {
         choicesYielding += this to yielder
     }
 
-    infix fun doIfCancelled(action: () -> Unit) {
+    infix fun ChoiceOption.yields(yielded: T) {
+        choicesYielding += this to { yielded }
+    }
+
+    fun doIfCancelled(action: () -> Unit) {
         choicesActions += null to action
     }
 
-    infix fun yieldIfCancelled(yielder: () -> T) {
+    fun yieldIfCancelled(yielder: () -> T) {
         choicesYielding += null to yielder
     }
 }

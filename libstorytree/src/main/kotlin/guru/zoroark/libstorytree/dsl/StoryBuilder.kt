@@ -181,7 +181,7 @@ class StoryBuilder(val env: StoryEnvironment) {
                 else
                     ""
             }
-            choice("Exit") withColor("red") withWhiteText(true) does {
+            choice("Exit") withColor "red" withWhiteText true does {
                 env.engine.closeStory()
             }
             choice("Continue")

@@ -149,10 +149,29 @@ class Story(
             when (val x = where()) {
                 is String -> nodeRef(x)
                 is Int -> nodeRef(x)
+                is StoryNode -> throw StoryBuilderException("""
+                    Story nodes must be given to a 'does' block, not a 'goesTo' block.
+                    Replace the 'goesTo' for this option by a 'does'.
+                """.trimIndent())
                 else -> throw StoryBuilderException("Invalid id type: " + x::class.simpleName)
             }
         }
     }
+
+    /**
+     * Specifies that this option goes to the node from the same story with the given ID. Usage:
+     *
+     * ```
+     *     option { "My option" } goesTo 2
+     *     option { "My other option" ] goesTo "some node"
+     * ```
+     *
+     * Note that `goesTo x` is strictly equivalent to `goesTo { x }` and `does { nodeRef(x) }`, where
+     * `x` is an integer or a string.
+     *
+     * @param id The id of the node this option should lead to
+     */
+    infix fun StoryOption.goesTo(id: Any) = goesTo { id }
 
     fun inNode(id: Int, block: StoryNode.() -> Unit) = inNode(id.toString(), block)
 
