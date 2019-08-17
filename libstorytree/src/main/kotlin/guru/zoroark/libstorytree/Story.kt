@@ -8,12 +8,13 @@
  */
 package guru.zoroark.libstorytree
 
-import guru.zoroark.libstorytree.dsl.StoryBuilderException
 import java.util.*
 
 /**
  * Root class for stories. Stories are objects made of nodes and additional information, such as author, title,
  * identifier and initial node information.
+ *
+ * Nodes in the same story must never share the same ID, and stories in the same environment must never share the same ID.
  */
 class Story(
         /**
@@ -29,16 +30,13 @@ class Story(
          */
         var id: String = ""
 ) {
-    /**
-     * The nodes contained in the story. No two nodes shall have the same ID.
-     */
     private val nodes: TreeSet<StoryNode> = TreeSet(Comparator { x, y -> x.id.compareTo(y.id) })
 
     /**
      * The code to execute to get the initial node
      */
     var initialNode: () -> StoryNode = {
-        this[1] ?: throw StoryBuilderException(
+        this[1] ?: throw StoryException(
                 """
                 Initial node (with id 1) does not exist.
                 
@@ -94,10 +92,10 @@ class Story(
      *
      * @param id The ID to look for
      * @return The node which has the id passed in the parameter
-     * @throws StoryBuilderException if the node could not be found
+     * @throws StoryException if the node could not be found
      */
     fun nodeRef(id: String): StoryNode {
-        return this[id] ?: throw StoryBuilderException("Node with id $id not found in story ${this.id}")
+        return this[id] ?: throw StoryException("Node with id $id not found in story ${this.id}")
     }
 
     /**
@@ -105,7 +103,7 @@ class Story(
      *
      * @param id The ID to look for
      * @return The node which has the id passed in the parameter
-     * @throws StoryBuilderException if the node could not be found
+     * @throws StoryException if the node could not be found
      */
     fun nodeRef(id: Int) = nodeRef(id.toString())
 
@@ -149,11 +147,11 @@ class Story(
             when (val x = where()) {
                 is String -> nodeRef(x)
                 is Int -> nodeRef(x)
-                is StoryNode -> throw StoryBuilderException("""
+                is StoryNode -> throw StoryException("""
                     Story nodes must be given to a 'does' block, not a 'goesTo' block.
                     Replace the 'goesTo' for this option by a 'does'.
                 """.trimIndent())
-                else -> throw StoryBuilderException("Invalid id type: " + x::class.simpleName)
+                else -> throw StoryException("Invalid id type: " + x::class.simpleName)
             }
         }
     }
@@ -173,12 +171,19 @@ class Story(
      */
     infix fun StoryOption.goesTo(id: Any) = goesTo { id }
 
+    /**
+     * Run a node block on a node that already exists. This can be used to, for
+     * example, customize an imported node.
+     */
     fun inNode(id: Int, block: StoryNode.() -> Unit) = inNode(id.toString(), block)
 
     fun inNode(id: String, block: StoryNode.() -> Unit) {
         block(nodeRef(id))
     }
 
+    /**
+     * Run a node block in all of the nodes in this story.
+     */
     fun inAllNodes(block: StoryNode.() -> Unit) {
         nodes.forEach {
             block(it)

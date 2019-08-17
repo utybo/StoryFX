@@ -20,8 +20,11 @@ import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
 import java.util.concurrent.Callable
 
+/**
+ * View for loading story, in [StoryScope]
+ */
 class StoryLoadingView : View() {
-    val controller: StoryLoadingController by inject()
+    private val controller: StoryLoadingController by inject()
     private var pg: ProgressBar by singleAssign()
     private var pgAnimation: FadeTransition by singleAssign()
 

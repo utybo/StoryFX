@@ -22,12 +22,15 @@ import tornadofx.*
 import java.io.File
 import java.util.concurrent.CountDownLatch
 
+/**
+ * Controller for the overall application, in the default scope
+ */
 class AppController : Controller() {
     val preloadStatus = TaskStatus()
-    val view: AppView by inject()
+    private val view: AppView by inject()
     private var previousFolder: File? = null
 
-    fun openNew(tabs: TabPane, currentWindow: Window?) {
+    internal fun openNew(tabs: TabPane, currentWindow: Window?) {
         val chosen = chooseFile("Open KTS story",
                 owner = currentWindow,
                 mode = FileChooserMode.Single,
@@ -57,7 +60,11 @@ class AppController : Controller() {
         }
     }
 
-    fun preloadElements() {
+    /**
+     * An async function that does some loading (mostly to get the classes in
+     * memory and warm everything up)
+     */
+    internal fun preloadElements() {
         runAsync(preloadStatus) {
             updateProgress(-1, 1)
             updateMessage("Initializing Kotlin DSL library...")

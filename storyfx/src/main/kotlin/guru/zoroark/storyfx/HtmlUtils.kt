@@ -12,7 +12,7 @@ import guru.zoroark.libstorytree.StoryFont
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 
-val baseCss =
+private val baseCss =
         """
         <style type="text/css">
             .node-container {
@@ -34,20 +34,32 @@ val baseCss =
         </style>
         """.trimIndent()
 
-fun toNodeHtml(text: String, font: StoryFont, backgroundB64: String? = null, darkMode: Boolean = false): String {
-    val sb: StringBuilder = StringBuilder()
-    sb.append("<html><head><meta charset=\"utf-8\"/><style type=\"text/css\">body {font-family: '")
-    sb.append(font.fontName)
-    sb.append("', serif;")
-    sb.append("font-size: 14px;}</style>")
-    sb.append(baseCss)
-    sb.append(additionalStyling(darkMode))
-    sb.append(generateBackgroundStyle(backgroundB64, darkMode))
-    sb.append("</head><body><div class=\"overlay-container\"></div><div class=\"node-container\">")
-    sb.append(mdToHtml(text))
-    sb.append("</div></body></html>")
-    return sb.toString()
-}/*
+/**
+ * Embed a node with the given [text] in HTML, using all of the provided parameters.
+ *
+ * @param text The text of the node
+ * @param font The font to use
+ * @param backgroundB64 Base64 encoded background to display, or null if no
+ * background should be displayed.
+ * @param darkMode True if a dark background should be used, false if a light
+ * background should be used.
+ */
+fun toNodeHtml(text: String, font: StoryFont, backgroundB64: String? = null, darkMode: Boolean = false): String =
+        StringBuilder().run {
+            append("<html><head><meta charset=\"utf-8\"/><style type=\"text/css\">body {font-family: '")
+            append(font.fontName)
+            append("', serif;")
+            append("font-size: 14px;}</style>")
+            append(baseCss)
+            append(additionalStyling(darkMode))
+            append(generateBackgroundStyle(backgroundB64, darkMode))
+            append("</head><body><div class=\"overlay-container\"></div><div class=\"node-container\">")
+            append(mdToHtml(text))
+            append("</div></body></html>")
+            toString()
+        }
+
+/*
         <html>
             <head>
                 <meta charset="utf-8"/>
@@ -66,7 +78,7 @@ fun toNodeHtml(text: String, font: StoryFont, backgroundB64: String? = null, dar
             </body>
         </html>*/
 
-fun additionalStyling(darkMode: Boolean): String =
+private fun additionalStyling(darkMode: Boolean): String =
         if (darkMode)
             """
             <style type="text/css">
@@ -103,6 +115,9 @@ private fun generateBackgroundStyle(bg64: String?, darkMode: Boolean): String {
     </style>*/
 }
 
+/**
+ * Turn markdown into HTML using Commonmark
+ */
 fun mdToHtml(text: String): String {
     val parser = Parser.builder().build()
     val document = parser.parse(text)

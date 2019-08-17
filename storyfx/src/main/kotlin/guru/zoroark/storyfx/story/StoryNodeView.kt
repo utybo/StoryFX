@@ -17,15 +17,18 @@ import javafx.scene.layout.Priority
 import javafx.scene.web.WebView
 import tornadofx.*
 
+/**
+ * View responsible for showing the node and options, in [StoryScope]
+ */
 class StoryNodeView : View() {
     companion object {
         const val optionsPerRow = 2
     }
 
-    val controller: StoryNodeController by inject()
-    var options: GridPane by singleAssign()
-    var webview: WebView by singleAssign()
-    val appView: AppView by inject(FX.defaultScope)
+    private val controller: StoryNodeController by inject()
+    private var options: GridPane by singleAssign()
+    private var webview: WebView by singleAssign()
+    private val appView: AppView by inject(FX.defaultScope)
 
     override val root = borderpane {
         center {
@@ -45,7 +48,7 @@ class StoryNodeView : View() {
         }
     }
 
-    fun showOptions(nodeOptions: List<StoryOption>) {
+    internal fun showOptions(nodeOptions: List<StoryOption>) {
         with(options) {
             removeAllRows()
             for ((i, no) in nodeOptions.withIndex()) {
@@ -63,7 +66,7 @@ class StoryNodeView : View() {
         }
     }
 
-    fun showNodeText(isDark: Boolean? = null) {
+    internal fun showNodeText(isDark: Boolean? = null) {
         val curNode = controller.currentNode.value ?: return
         webview.engine.loadContent(
                 toNodeHtml(

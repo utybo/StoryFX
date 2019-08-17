@@ -7,11 +7,13 @@
  * defined by the Mozilla Public License, v. 2.0.
  */
 package guru.zoroark.libstorytree
+
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
 
 private val optionPattern = "\\{(.+?)}\\s*(.+?)\\s*".toRegex()
+private val nodeDefPattern = "\\[.+]".toRegex()
 
 /**
  * Parse a story that is in the story.txt format stored in the given file.
@@ -37,7 +39,7 @@ fun parseStoryText(input: BufferedReader): Story {
     var currentNode: StoryNode? = null
     input.forEachLine {
         val trimmed = it.trim()
-        if(trimmed.startsWith("//"))
+        if (trimmed.startsWith("//"))
             return@forEachLine
         if (currentNode == null) {
             if ('=' in trimmed) {
@@ -48,23 +50,24 @@ fun parseStoryText(input: BufferedReader): Story {
                 return@forEachLine
             }
         }
-        if (trimmed.isNotEmpty() && trimmed.first() == '[' && trimmed.last() == ']' && trimmed.length >= 3) {
-            val nodeId = trimmed.substring(1, trimmed.length - 1)
-            if (currentNode != null) {
-                val textToPutIn = currentNode!!.text()
-                currentNode!!.text = { textToPutIn }
+        val nodeDefMatch = nodeDefPattern.matchEntire(trimmed)
+        if (nodeDefMatch != null) {
+            val nodeId = nodeDefMatch.groupValues[1]
+            val toFinalize = currentNode
+            if (toFinalize != null) {
+                val textToPutIn = toFinalize.text()
+                toFinalize.text = { textToPutIn } // Optimization
             }
             currentNode = story.node(nodeId)
-            return@forEachLine
-        }
-        if (currentNode != null) {
+        } else currentNode?.run {
             val matched = optionPattern.matchEntire(trimmed)
             if (matched != null) {
-                currentNode!!.option { matched.groupValues[1] } does { story.nodeRef(matched.groupValues[2]) }
+                option { matched.groupValues[1] } does { story.nodeRef(matched.groupValues[2]) }
             } else {
-                val textToPutIn = currentNode!!.text() + "\n" + trimmed
-                currentNode!!.text = { textToPutIn }
+                val textToPutIn = text() + "\n$trimmed"
+                text = { textToPutIn }
             }
+
         }
     }
     return story

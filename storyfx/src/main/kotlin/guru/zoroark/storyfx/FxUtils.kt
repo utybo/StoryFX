@@ -8,23 +8,34 @@
  */
 package guru.zoroark.storyfx
 
-import guru.zoroark.libstorytree.dsl.StoryBuilderException
+import guru.zoroark.libstorytree.StoryException
 import javafx.application.Platform
 import javafx.event.EventTarget
 import javafx.scene.control.Alert
+import javafx.stage.Modality
+import javafx.stage.Window
 import org.kordamp.ikonli.javafx.FontIcon
 import tornadofx.*
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.concurrent.CountDownLatch
 
-fun showBuilderError(headerText: String, ex: StoryBuilderException) {
+/**
+ * Function that should be ran to display a StoryException with useful
+ * diagnostics formatting
+ */
+fun showBuilderError(headerText: String, ex: StoryException, owner: Window? = null) {
     val alert = Alert(Alert.AlertType.ERROR).apply {
+        initOwner(owner)
+        initModality(Modality.WINDOW_MODAL)
         isResizable = true
         title = "An error occurred"
         this.headerText = headerText
-        dialogPane.content = vbox {
-            ex.message?.let { label(it + if (ex.cause != null) " (${ex.cause!!.message})" else "") }
+        dialogPane.content = vbox(8) {
+            ex.message?.let {
+                val cause = ex.cause
+                label(it + if (cause != null) " (${cause.message})" else "")
+            }
             textarea(
                     """
                     |${ex.diagnosticsMessage}${generateCauseInformation(ex)}
@@ -43,7 +54,7 @@ fun showBuilderError(headerText: String, ex: StoryBuilderException) {
     alert.showAndWait()
 }
 
-fun generateCauseInformation(ex: Throwable): String {
+private fun generateCauseInformation(ex: Throwable): String {
     val cause = ex.cause
     if (cause != null) {
         if (cause.message != null) {
@@ -54,14 +65,16 @@ fun generateCauseInformation(ex: Throwable): String {
     return ""
 }
 
-infix fun String?.orIfNullOrEmpty(s: String) = if (this == null || isBlank()) s else this
+private infix fun String?.orIfNullOrEmpty(s: String) = if (this == null || isBlank()) s else this
 
 private fun generateRelevantST(ex: Throwable): List<String> =
-        ex.stackTrace.filter { it.fileName?.endsWith(".kts", ignoreCase = true) ?: false }
-                .map {
-                    "- In ${it.fileName} at line ${it.lineNumber.orNaIfNeg()}, within ${it.methodName} of ${it.className}"
-                } +
-                if (ex.cause != null) generateRelevantST(ex.cause!!) else listOf()
+        ex.stackTrace.filter {
+            it.fileName?.endsWith(".kts", ignoreCase = true) ?: false
+        }.map {
+            "- In ${it.fileName} at line ${it.lineNumber.orNaIfNeg()}, within ${it.methodName} of ${it.className}"
+        } + ex.cause.let {
+            if (it != null) generateRelevantST(it) else listOf()
+        }
 
 private fun Int.orNaIfNeg(): String = if (this < 0) "N/A" else this.toString()
 
@@ -74,8 +87,14 @@ private fun Exception.stackTraceToString(): String {
     return sw.toString()
 }
 
+/**
+ * Create a FontIcon just like you'd create other stuff using TornadoFX
+ */
 fun EventTarget.icon(iconName: String, op: FontIcon.() -> Unit = {}) = FontIcon(iconName).attachTo(this, op)
 
+/**
+ * A runAndWait function for JavaFX that doesn't suck and returns something
+ */
 fun <T> runAndWait(function: () -> T): T {
     var result: T by singleAssign()
     if (Platform.isFxApplicationThread()) {

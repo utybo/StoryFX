@@ -9,20 +9,25 @@
 package guru.zoroark.storyfx.impl
 
 import guru.zoroark.libstorytree.Resource
+import tornadofx.*
 import java.io.InputStream
 import java.util.*
 
+/**
+ * Represents any resource in StoryFX
+ */
 open class Base64Resource(override val name: String, val base64: String) : Resource {
+    private var preKnownBytes: ByteArray? = null
 
-    var bytes: ByteArray? = null
+    val bytes: ByteArray by lazy {
+        preKnownBytes ?: Base64.getDecoder().decode(base64)
+    }
 
     constructor(name: String, bytes: ByteArray) : this(name, Base64.getEncoder().encodeToString(bytes)) {
-        this.bytes = bytes
+        preKnownBytes = bytes
     }
 
     override fun openStream(): InputStream {
-        if (bytes == null)
-            bytes = Base64.getDecoder().decode(base64)
-        return bytes!!.inputStream()
+        return bytes.inputStream()
     }
 }

@@ -15,6 +15,9 @@ import javafx.scene.control.Tab
 import tornadofx.*
 import java.util.concurrent.Callable
 
+/**
+ * The controller for the story. This is usually the node in a tab.
+ */
 class StoryController : Controller() {
     val tab = SimpleObjectProperty<Tab?>(null)
     val loadingController: StoryLoadingController by inject()
@@ -23,11 +26,20 @@ class StoryController : Controller() {
     val model: StoryModel by inject()
     val mainView: AppView by inject(FX.defaultScope)
 
+    /**
+     * Initialize some default values for the story controller and start loading
+     * the story
+     */
     fun initialize() {
+        tab.value?.textProperty()?.unbind() // Just in case
         tab.value?.text = "Loading..."
         loadingController.load()
     }
 
+    /**
+     * Handler for when the loading of the story has finished successfully.
+     * Initializes some basic properties that depend on the story itself.
+     */
     @Suppress("ObjectLiteralToLambda")
     fun loadingFinished() {
         tab.value?.textProperty()?.bind(Bindings.createStringBinding(object : Callable<String> {
@@ -42,6 +54,9 @@ class StoryController : Controller() {
         view.switchToNodeView()
     }
 
+    /**
+     * Close the tab
+     */
     fun close() {
         if (tab.value != null)
             mainView.appTabPane.tabs.remove(tab.value)

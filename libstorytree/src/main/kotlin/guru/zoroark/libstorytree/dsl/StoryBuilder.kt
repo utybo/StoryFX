@@ -36,7 +36,7 @@ interface ResourcesGetter {
     /**
      * Get a resource by its name from this getter object.
      * @return a Resource object that matches the resource name.
-     * @throws StoryBuilderException if the engine does not support resources.
+     * @throws StoryException if the engine does not support resources.
      */
     operator fun get(resourceName: String): Resource
 }
@@ -68,7 +68,7 @@ class StoryBuilder(val env: StoryEnvironment) {
             if (env.engine is ResourceEngine)
                 return env.engine.getResource(resourceName)
             else
-                throw StoryBuilderException("Engine does not support resources")
+                throw StoryException("Engine does not support resources")
         }
     }
 
@@ -93,7 +93,7 @@ class StoryBuilder(val env: StoryEnvironment) {
     private fun registerStory(story: Story) {
         // Stories should be registered after being initialized
         if (built.any { it.id == story.id }) {
-            throw StoryBuilderException("Stories built at the same time must not have identical IDs.")
+            throw StoryException("Stories built at the same time must not have identical IDs.")
         }
         built.add(story)
     }
@@ -114,17 +114,18 @@ class StoryBuilder(val env: StoryEnvironment) {
         if (env.engine is T) {
             return env.engine
         } else {
-            throw IncompatibleEngineException(T::class.simpleName ?: "Unknown")
+            throw IncompatibleEngineException(T::class.simpleName
+                    ?: "Unknown")
         }
     }
 
     /**
      * This function throws an exception, instantly making the story crash.
      *
-     * @throws StoryBuilderException always
+     * @throws StoryException always
      */
     fun forceFail() {
-        throw StoryBuilderException("The story was forced to crash by calling the forceFail() function")
+        throw StoryException("The story was forced to crash by calling the forceFail() function")
     }
 
     /**
@@ -137,7 +138,7 @@ class StoryBuilder(val env: StoryEnvironment) {
         if (env.engine is ResourceEngine)
             env.engine.loadResources()
         else
-            throw StoryBuilderException("Engine does not support resources")
+            throw StoryException("Engine does not support resources")
     }
 
     /**
@@ -160,6 +161,17 @@ class StoryBuilder(val env: StoryEnvironment) {
         return story
     }
 
+    /**
+     * Similar to [import], but loads the text from a [Resource] instead of a
+     * string.
+     *
+     * Usage:
+     * ```
+     *     importTxt(resources["myResource.story.txt"]) {
+     *         // This is a story block
+     *     }
+     * ```
+     */
     fun importTxt(resource: Resource, init: Story.() -> Unit): Story {
         val story = parseStoryText(resource.openStream().bufferedReader())
         init(story)
@@ -167,19 +179,33 @@ class StoryBuilder(val env: StoryEnvironment) {
         return story
     }
 
+    /**
+     * Send out a warning for the user that the content they are about to view
+     * is considered "Not Safe For Work" (NSFW). You can additionally specify
+     * the kind of content that should be expected in the parameter, like so:
+     *
+     * ```
+     * warnNsfw("This", "That", "And that" .....)
+     * ```
+     *
+     * They will appear in a list in the message.
+     *
+     * This relies on the Choices DSL, thus the engine must support [CommonEngine].
+     */
     fun warnNsfw(vararg problematicContent: String) {
         choices {
-            icon { "gmi-do-not-disturb-on" }
+            icon { "gmi-do-not-disturb-on" } // Might not work on non-StoryFX platforms
             title { "NSFW Warning" }
             text {
                 """
                 This story contains explicit content that is not appropriate for people under legal age.
                 By clicking "Continue", you agree that you legally have the age and are willing to watch this content.
-                """.trimIndent() + if (problematicContent.isNotEmpty())
-                    "\n\nPotentially problematic content includes:" +
-                            problematicContent.joinToString(separator = "\n- ", prefix = "\n- ")
-                else
-                    ""
+                """.trimIndent() +
+                        if (problematicContent.isNotEmpty())
+                            "\n\nPotentially problematic content includes:" +
+                                    problematicContent.joinToString(separator = "\n- ", prefix = "\n- ")
+                        else
+                            ""
             }
             choice("Exit") withColor "red" withWhiteText true does {
                 env.engine.closeStory()
@@ -220,37 +246,40 @@ fun buildStoryDsl(source: SourceCode, env: StoryEnvironment): MutableList<Story>
     val read = BasicJvmScriptingHost().eval(source, cfg, ScriptEvaluationConfiguration {
         implicitReceivers(builder)
     })
-    if (read is ResultWithDiagnostics.Success<*>) {
-        return builder.built
-    } else {
-        val reports = read.reports
-        // Taking the cause of it.exception because Kotlin wraps the underlying exception
-        val exceptionReport = reports.firstOrNull { it.exception != null && it.exception!!.cause != null }
-        if (exceptionReport != null) {
-            throw StoryBuilderException("Story building failed due to an unexpected exception.", cause = exceptionReport.exception!!.cause)
 
-        } else {
-            val sb = StringBuilder("Story building failed. Check the diagnostics for why.\n")
-            read.reports.forEach {
-                with(sb) {
-                    appendln("${it.severity.name}: ${it.message}")
-                    val loc = it.location
-                    if (loc != null) {
-                        appendln("  Location: line ${loc.start.line} @ character ${loc.start.col}")
-                        val end = loc.end
-                        if (end != null) {
-                            appendln("              to line ${end.line} @ character ${end.col}")
-                        }
-                    }
-                    if (it.exception != null) {
-                        appendln("  Stack trace:")
-                        appendln(it.exception!!.stackTraceString.prependIndent("    "))
-                    }
-                    appendln()
+    if (read is ResultWithDiagnostics.Success<*>)
+        return builder.built
+
+    // At this point, there was an error: let's check what it is...
+
+    val reports = read.reports
+
+    // Taking the cause of it.exception because Kotlin wraps the underlying exception
+    val exceptionReport = reports.mapNotNull { it.exception }.firstOrNull { it.cause != null }
+
+    // This is an exception.
+    if (exceptionReport != null)
+        throw StoryException("Story building failed due to an unexpected exception.", cause = exceptionReport.cause)
+
+    StringBuilder("Story building failed. Check the diagnostics for why.\n").run {
+        read.reports.forEach {
+            appendln("${it.severity.name}: ${it.message}")
+            val loc = it.location
+            if (loc != null) {
+                appendln("  Location: line ${loc.start.line} @ character ${loc.start.col}")
+                val end = loc.end
+                if (end != null) {
+                    appendln("              to line ${end.line} @ character ${end.col}")
                 }
             }
-            throw StoryBuilderException(sb.toString())
+            val exc = it.exception
+            if (exc != null) {
+                appendln("  Stack trace:")
+                appendln(exc.stackTraceString.prependIndent("    "))
+            }
+            appendln()
         }
+        throw StoryException(toString())
     }
 }
 
@@ -265,26 +294,10 @@ fun buildStoryDsl(env: StoryEnvironment, init: StoryBuilder.() -> Unit): Mutable
     val storyBuilder = StoryBuilder(env)
     try {
         init(storyBuilder)
-    } catch (e: Exception) {
+    } catch (e: Exception) { // Intentionally broad
         val sb = StringBuilder("Story building failed due to an unexpected exception.\n")
         sb.appendln(e.stackTraceString)
-        throw StoryBuilderException(sb.toString(), cause = e)
+        throw StoryException(sb.toString(), cause = e)
     }
     return storyBuilder.built
 }
-
-/**
- * General exception for stories.
- *
- * @property diagnosticsMessage A possibly multi-line message with full information on what happened
- * @param message The regular [Exception] message. Optional. Default value is the first line of the [diagnosticsMessage].
- * @param cause The cause of this builder exception. Optiona. Default value is null.
- */
-open class StoryBuilderException(val diagnosticsMessage: String, message: String? = diagnosticsMessage.split("\n")[0], cause: Throwable? = null) : Exception(message, cause)
-
-/**
- * The exception thrown when [StoryBuilder.requireEngine] detects that the engine the story is ran in is incompatible with the one the story requires.
- *
- * @param requiredEngine The engine that is required by the story.
- */
-class IncompatibleEngineException(requiredEngine: String) : StoryBuilderException("Engine does not match story requirements. Required: $requiredEngine")

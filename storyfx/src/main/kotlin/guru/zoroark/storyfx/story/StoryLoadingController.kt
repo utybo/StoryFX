@@ -9,7 +9,7 @@
 package guru.zoroark.storyfx.story
 
 import guru.zoroark.libstorytree.StoryEnvironment
-import guru.zoroark.libstorytree.dsl.StoryBuilderException
+import guru.zoroark.libstorytree.StoryException
 import guru.zoroark.libstorytree.dsl.buildStoryDsl
 import guru.zoroark.libstorytree.parseStoryText
 import guru.zoroark.storyfx.impl.Base64Resource
@@ -20,18 +20,23 @@ import javafx.beans.property.SimpleBooleanProperty
 import tornadofx.*
 import java.io.File
 import java.io.FileNotFoundException
-import java.nio.file.*
-import java.nio.file.attribute.BasicFileAttributes
 
+/**
+ * Controller for the story loading panel that is shown while the story is
+ * being loaded.
+ */
 class StoryLoadingController : Controller() {
     val loadFailedOnce = SimpleBooleanProperty(false)
     val storyController: StoryController by inject()
     val nodeController: StoryNodeController by inject()
     val loadFailed = SimpleBooleanProperty(false)
     val loadingInfo: TaskStatus = TaskStatus()
-    val loadFrom = (scope as StoryScope).loadFrom
+    val loadFrom = (scope as? StoryScope)?.loadFrom ?: kotlin.error("Illegal state")
     lateinit var task: FXTask<*>
 
+    /**
+     * Asynchronously load the story. Takes care of updating the task.
+     */
     fun load() {
         runAsync(loadingInfo) {
             updateMessage("Loading story...")
@@ -44,7 +49,7 @@ class StoryLoadingController : Controller() {
                     listOf(parseStoryText(loadFrom))
 
                 if (stories.isEmpty())
-                    throw StoryBuilderException("No stories described in file")
+                    throw StoryException("No stories described in file")
 
                 // TODO change this to support loading multiple stories
                 storyController.model.rebind { item = stories[0] }
@@ -53,22 +58,22 @@ class StoryLoadingController : Controller() {
                 Platform.runLater {
                     storyController.loadingFinished()
                 }
-            } catch (e: StoryBuilderException) {
-                if(e is StoryLoadingAbortedException || e.cause is StoryLoadingAbortedException)
-                    return@runAsync
-                updateProgress(1, 1) // the bar be shown in orange here
+            } catch (e: StoryException) {
+                if (e is StoryLoadingAbortedException || e.cause is StoryLoadingAbortedException)
+                    return@runAsync // Give up: the loading was explicitly aborted by the user
+                updateProgress(1, 1) // the bar is shown in orange here
                 updateMessage("Error")
                 Platform.runLater {
                     loadFailedOnce.value = true
                     loadFailed.value = true
-                    showBuilderError("Error while loading the story", e)
+                    showBuilderError("Error while loading the story", e, find<StoryLoadingView>().currentWindow)
                 }
             }
         }
     }
 
-    fun loadResources(cachedResources: MutableMap<String, Base64Resource>) {
-        val from = (scope as StoryScope).loadFrom
+    internal fun loadResources(cachedResources: MutableMap<String, Base64Resource>) {
+        val from = (scope as? StoryScope)?.loadFrom ?: kotlin.error("Invalid scope")
         val resourcesFolder = File(from.parentFile, "resources")
         task.updateMessage("Exploring resources...")
         val resourcesFiles = resourcesFolder.getTreeListOfChildren()
@@ -91,7 +96,8 @@ class StoryLoadingController : Controller() {
     }
 
     private fun visitFileTree(root: File, rootName: String = "", action: (File, String) -> Unit) {
-        val children = root.listFiles() ?: throw FileNotFoundException("Root is a file or doesn't exist")
+        val children = root.listFiles()
+                ?: throw FileNotFoundException("Root is a file or doesn't exist")
         for (file in children) {
             if (file.isDirectory)
                 visitFileTree(file, "$rootName${file.name}/", action)

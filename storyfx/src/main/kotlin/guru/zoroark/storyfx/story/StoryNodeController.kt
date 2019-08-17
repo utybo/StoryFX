@@ -9,7 +9,7 @@
 package guru.zoroark.storyfx.story
 
 import guru.zoroark.libstorytree.*
-import guru.zoroark.libstorytree.dsl.StoryBuilderException
+import guru.zoroark.libstorytree.StoryException
 import guru.zoroark.storyfx.icon
 import guru.zoroark.storyfx.impl.Base64Resource
 import guru.zoroark.storyfx.orIfNullOrEmpty
@@ -32,6 +32,11 @@ import tornadofx.*
 import java.io.FileNotFoundException
 import java.util.*
 
+/**
+ * Controller for the story node part of the interface, in a [StoryScope].
+ *
+ * Also serves as the engine implementation for StoryFX.
+ */
 class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
     private val nodeView: StoryNodeView by inject()
     val currentNode = SimpleObjectProperty<StoryNode?>(null)
@@ -41,6 +46,8 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
     override var imageBackground: Resource?
         get() = _imgBg
         set(value) {
+            if(value != null && value !is Base64Resource)
+                throw InvalidResourceType(value.name)
             _imgBg = value as Base64Resource
         }
 
@@ -48,26 +55,35 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
         nodeView.showOptions(node.options.filter { it.isVisible() })
     }
 
+    /**
+     * Handler for what should be done when [no] is pressed.
+     *
+     * Must only be called when in a story (i.e. currentNode.value != null)
+     */
     fun handleOptionPressed(no: StoryOption) {
         try {
             val next = no.onSelected()
-            switchToNode(next ?: currentNode.value!!)
-        } catch (e: StoryBuilderException) {
-            showBuilderError("Error on a does call or an option selection", e)
+            val curNode = currentNode.value ?: kotlin.error("Illegal state")
+            switchToNode(next ?: curNode)
+        } catch (e: StoryException) {
+            showBuilderError("Error on a does call or an option selection", e, nodeView.currentWindow)
         }
     }
 
+    /**
+     * Calls the node's onNodeReached handler and displays the node, showing
+     * its text (calls the view's showNodeText) and shows its options.
+     */
     fun switchToNode(node: StoryNode) {
         try {
             node.onNodeReached()
             currentNode.value = node
             nodeView.showNodeText()
             showOptions(node)
-        } catch (e: StoryBuilderException) {
-            showBuilderError("Error on a onNodeReached call or while displaying node", e)
+        } catch (e: StoryException) {
+            showBuilderError("Error on a onNodeReached call or while displaying node", e, nodeView.currentWindow)
         }
     }
-
 
     override fun warn(message: String) {
         runAndWait {
@@ -131,10 +147,15 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
         nodeView.showNodeText(n)
     }
 
+    /**
+     * Must be called to add a weak change listener to the property to properly
+     * switch the theme.
+     */
     fun bindModeSwitcherTo(prop: BooleanProperty) {
         prop.addListener(WeakChangeListener(modeSwitcherChangeListener))
     }
 
+    // Implementation of the choice DSL's backend
     override fun choice(cancellable: Boolean, icon: Any?, text: String, title: String?, vararg options: ChoiceOption): ChoiceOption? = runAndWait {
         val dialog = Dialog<ChoiceOption>()
         // Initialize the choice dialog
@@ -190,7 +211,8 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
         dialog.isResizable = true
         dialog.dialogPane.minHeight = Region.USE_PREF_SIZE
 
-        return@runAndWait if (cancellable)
+        // returns
+        if (cancellable)
             dialog.showAndWait().orElse(null)
         else
             ensureResult {
@@ -209,6 +231,7 @@ class StoryNodeController : Controller(), CommonEngine, ResourceEngine {
         }
     }
 
+    // Used because i'm lazy
     private operator fun DialogPane.plusAssign(btype: ButtonType) {
         buttonTypes.add(btype)
     }

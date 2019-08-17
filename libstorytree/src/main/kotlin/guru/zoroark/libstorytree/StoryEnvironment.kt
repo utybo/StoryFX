@@ -8,7 +8,6 @@
  */
 package guru.zoroark.libstorytree
 
-import guru.zoroark.libstorytree.dsl.StoryBuilderException
 import kotlin.reflect.KProperty
 
 /**
@@ -25,6 +24,11 @@ class StoryEnvironment(val engine: BaseEngine) {
      */
     inner class EnvironmentDelegator<T>(private val default: T?) {
 
+        /**
+         * Retrieve the value that has the same name as this property
+         * and return it, or set and return the default value if nothing is
+         * found in the environment.
+         */
         operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
             if (environmentProperties.containsKey(property.name)) {
                 @Suppress("UNCHECKED_CAST")
@@ -34,12 +38,15 @@ class StoryEnvironment(val engine: BaseEngine) {
                     environmentProperties[property.name] = default
                     return default
                 } else {
-                    throw StoryBuilderException("No value set and this delegation does not provide a default")
+                    throw StoryException("No value set and this delegation does not provide a default")
                 }
             }
 
         }
 
+        /**
+         * Set the value in the registry to the provided value.
+         */
         operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
             // TODO add proper type checking
             environmentProperties[property.name] = value
@@ -52,5 +59,9 @@ class StoryEnvironment(val engine: BaseEngine) {
      */
     fun <T> delegated(defaultValue: T): EnvironmentDelegator<T> = EnvironmentDelegator(defaultValue)
 
+    /**
+     * Delegate a property to the environment without providing a default, assuming that it has
+     * been set before.
+     */
     fun <T> delegated() = EnvironmentDelegator<T>(null)
 }
