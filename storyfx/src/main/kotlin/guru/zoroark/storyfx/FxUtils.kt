@@ -65,7 +65,10 @@ private fun generateCauseInformation(ex: Throwable): String {
     return ""
 }
 
-private infix fun String?.orIfNullOrEmpty(s: String) = if (this == null || isBlank()) s else this
+/**
+ * Returns this string if it is not null nor empty, or [s] if it is null or empty.
+ */
+infix fun String?.orIfNullOrEmpty(s: String) = if (this == null || isBlank()) s else this
 
 private fun generateRelevantST(ex: Throwable): List<String> =
         ex.stackTrace.filter {
