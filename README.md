@@ -1,5 +1,8 @@
 # StoryFX
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/666ae0ff3b974f808d89896af3b2a0a4)](https://app.codacy.com/app/utybo/StoryFX?utm_source=github.com&utm_medium=referral&utm_content=utybo/StoryFX&utm_campaign=Badge_Grade_Settings)
+
+
 StoryFX is a desktop application for reading branching stories.
 
 This repository also contains the source code for the libstorytree library, a library for reading stories that use the `story.kts` (Story Kotlin DSL) format.
